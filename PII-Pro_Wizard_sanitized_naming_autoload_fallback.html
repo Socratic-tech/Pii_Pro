@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>PII-Pro — Educator Wizard (SANITIZED naming • Autoload+Fallback)</title>
+<style>
+  :root{
+    --brand:#0b5fff;
+    --brand-2:#5f9bff;
+    --border:#e5e7eb;
+    --muted:#6b7280;
+    --ok:#16a34a;
+    --bad:#ef4444;
+    --ink:#0f172a;
+    --bg:#f8fafc;
+    --card:#ffffff;
+    --chip:#f1f5f9;
+    --table-border:#e5e7eb;
+    --callout-bg:#fff8db;
+    --callout-border:#e6b800;
+  }
+  [data-theme="dark"]{
+    --brand:#4a8bff;
+    --brand-2:#8cb3ff;
+    --border:#283548;
+    --muted:#9aa5b1;
+    --ok:#22c55e;
+    --bad:#f87171;
+    --ink:#e5e7eb;
+    --bg:#0f172a;
+    --card:#121a2a;
+    --chip:#111827;
+    --table-border:#1f2937;
+    --callout-bg:#1f2937;
+    --callout-border:#374151;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--ink);font:14px system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;margin:0}
+  a{color:var(--brand);text-decoration:none}
+  .shell{max-width:1080px;margin:28px auto 64px;padding:0 20px}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:14px}
+  .header-left{display:flex;align-items:center;gap:12px}
+  .logo{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;color:#fff;font-weight:800;background:linear-gradient(135deg,var(--brand),var(--brand-2))}
+  h1{font-size:20px;margin:0}
+  .subtitle{color:var(--muted);font-size:12.5px;margin-top:2px}
+  .toggle{display:flex;align-items:center;gap:8px}
+  .toggle button{padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:transparent;color:var(--ink);cursor:pointer}
+  .toggle button.active{background:var(--brand);border-color:var(--brand);color:#fff}
+  .muted{color:var(--muted);font-size:12px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin:12px 0}
+  .callout{border:1px solid var(--callout-border);background:var(--callout-bg);border-radius:10px;padding:10px}
+  label{font-size:14px}
+  input[type="file"],select,button{font:inherit;color:inherit}
+  button{padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:transparent;cursor:pointer}
+  button.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+  button.ghost{background:transparent}
+  button:disabled{opacity:.55;cursor:not-allowed}
+  .cols{max-height:220px;overflow:auto;border:1px solid var(--border);border-radius:8px;padding:6px;min-width:260px;background:transparent}
+  .cols label{display:flex;gap:8px;padding:3px 2px}
+  .badge{font-size:10px;border:1px solid var(--border);border-radius:6px;padding:0 6px}
+  .badge.pii{background:rgba(239,68,68,.12);border-color:#f0b5b5;color:#fca5a5}
+  [data-theme="dark"] .badge.pii{border-color:#7f1d1d;color:#fecaca;background:rgba(239,68,68,.12)}
+  .badge.always{background:rgba(59,130,246,.12);border-color:#93c5fd;color:#93c5fd}
+  [data-theme="dark"] .badge.always{border-color:#1d4ed8;color:#bfdbfe}
+  .chip{display:inline-block;border:1px solid var(--border);border-radius:999px;padding:2px 8px;margin:2px 6px 0 0;font-size:11px;background:var(--chip)}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{border-bottom:1px solid var(--table-border);padding:7px;text-align:left;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .grid{display:grid;gap:10px;grid-template-columns:1fr}
+  @media(min-width:900px){.grid{grid-template-columns:1fr 1fr}}
+  .ok{color:var(--ok)}.bad{color:var(--bad)}
+  .search{border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:220px;background:transparent;color:inherit}
+  .steps{display:flex;gap:10px;align-items:center;margin:14px 0 6px}
+  .step{display:flex;align-items:center;gap:8px;color:var(--muted);font-weight:600}
+  .step .dot{width:22px;height:22px;border-radius:999px;background:rgba(148,163,184,.3);color:var(--ink);display:grid;place-items:center;font-size:12px}
+  .step.active{color:var(--brand)}
+  .step.active .dot{background:var(--brand);color:#fff}
+  .progress{height:8px;background:rgba(148,163,184,.3);border-radius:999px;overflow:hidden}
+  .bar{height:8px;background:linear-gradient(90deg,var(--brand) 0%,var(--brand-2) 100%);border-radius:999px;width:33%}
+  .instructions h3{margin:0 0 6px}
+  .instructions ol{margin:6px 0 0 18px}
+  .instructions li{margin:6px 0}
+  .error{border:1px solid var(--bad);background:rgba(239,68,68,.08);border-radius:8px;padding:8px;display:none;color:var(--bad)}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div class="header-left">
+      <div class="logo">P</div>
+      <div>
+        <h1>PII-Pro — Educator Wizard</h1>
+        <div class="subtitle">Load CSV → Review → Export — pseudonyms can be toggled after upload</div>
+      </div>
+    </div>
+    <div class="toggle" role="group" aria-label="Theme toggle">
+      <button id="btnLight">Light</button>
+      <button id="btnAuto" class="active">Auto</button>
+      <button id="btnDark">Dark</button>
+    </div>
+  </header>
+
+  <div class="steps">
+    <div class="step active"><div class="dot">1</div>Upload</div>
+    <div class="step"><div class="dot">2</div>Review</div>
+    <div class="step"><div class="dot">3</div>Export</div>
+  </div>
+  <div class="progress"><div class="bar" id="bar"></div></div>
+
+  <div class="card instructions" aria-labelledby="instr-title">
+    <h3 id="instr-title">📘 Instructions</h3>
+    <ol>
+      <li><b>Upload a CSV</b>: Choose your file, then click <b>Load CSV</b> (or enable Auto‑load).</li>
+      <li><b>Review options</b>:
+        <ul>
+          <li><b>Drop</b> or <b>Mask</b> PII.</li>
+          <li>Optionally <b>Hash ID-like</b> columns.</li>
+          <li><b>Pseudonyms</b> can be toggled after upload (added to the exported CSV only).</li>
+          <li>Select any <b>extra columns</b> you want to remove.</li>
+        </ul>
+      </li>
+      <li><b>Preview</b>: Compare <i>Before</i> vs <i>After</i> (first 5 rows).</li>
+      <li><b>Export</b>: Download the cleaned file as <code>SANITIZED_&lt;original&gt;_SANITIZED.csv</code>.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <input type="file" id="file" accept=".csv,text/csv" />
+      <button id="loadBtn" class="primary">Load CSV</button>
+      <label><input type="checkbox" id="autoLoad" checked /> Auto‑load</label>
+      <span id="status" class="muted"></span>
+    </div>
+    <div id="errorBox" class="error" role="alert"></div>
+
+    <div class="row">
+      <label><input type="radio" name="mode" value="drop" checked /> Drop PII columns</label>
+      <label><input type="radio" name="mode" value="mask" /> Mask values (keep columns)</label>
+      <label><input type="checkbox" id="hashIDs" /> Hash ID-like columns</label>
+      <label title="Added only to the exported CSV"><input type="checkbox" id="pseudonyms" disabled /> Add pseudonyms on export</label>
+    </div>
+
+    <div class="row" style="align-items:flex-start">
+      <div style="min-width:180px;font-weight:600;margin-top:6px">Remove additional columns:</div>
+      <div class="cols" id="colSelect">Load a CSV to list headers…</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="row" style="gap:6px">
+          <button id="selAll" class="ghost" disabled>Select all</button>
+          <button id="selNone" class="ghost" disabled>Select none</button>
+          <button id="selPII" class="ghost" disabled>Select PII</button>
+          <button id="selNonPII" class="ghost" disabled>Select non‑PII</button>
+        </div>
+        <input id="searchCols" class="search" type="text" placeholder="Filter columns… (live search)" disabled />
+      </div>
+    </div>
+
+    <div class="row">
+      <button id="previewBtn" class="ghost" disabled>Preview (first 5 rows)</button>
+      <button id="exportBtn" class="primary" disabled>Export Clean CSV</button>
+    </div>
+  </div>
+
+  <div id="notes" class="muted"></div>
+
+  <div class="grid">
+    <div class="card">
+      <h3 style="margin:0 0 8px">Before (first 5 rows)</h3>
+      <div id="beforeTbl"></div>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 8px">After (first 5 rows)</h3>
+      <div id="afterTbl"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* Global error surfacing */
+window.addEventListener('error', (e)=>{ const b=document.getElementById('errorBox'); b.style.display='block'; b.textContent='Error: '+(e.message||'Unknown error'); });
+window.addEventListener('unhandledrejection', (e)=>{ const b=document.getElementById('errorBox'); b.style.display='block'; b.textContent='Error: '+(e.reason && e.reason.message ? e.reason.message : e.reason); });
+
+/* ===== Theme Toggle (unchanged behavior) ===== */
+(function initTheme(){
+  const root = document.documentElement;
+  const saved = localStorage.getItem('piipro_theme') || 'auto';
+  applyTheme(saved);
+  document.getElementById('btnLight').addEventListener('click', ()=>applyTheme('light'));
+  document.getElementById('btnAuto').addEventListener('click', ()=>applyTheme('auto'));
+  document.getElementById('btnDark').addEventListener('click', ()=>applyTheme('dark'));
+
+  function applyTheme(mode){
+    localStorage.setItem('piipro_theme', mode);
+    let m = mode;
+    if (mode === 'auto'){
+      m = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    root.setAttribute('data-theme', m === 'dark' ? 'dark' : 'light');
+    document.getElementById('btnLight').classList.toggle('active', mode==='light');
+    document.getElementById('btnAuto').classList.toggle('active', mode==='auto');
+    document.getElementById('btnDark').classList.toggle('active', mode==='dark');
+  }
+})();
+
+/* ===== Config ===== */
+const PII_KEYWORDS = [
+  'name','first','last','full name','student name','parent','guardian',
+  'email','e-mail','phone','cell','mobile','address','street','city','state','zip','postal',
+  'ssn','social security','dob','date of birth','birthday','birthdate',
+  'student id','sid','id number','id #','sis id','upn','upi','uid','uic',
+  'homeroom','bus','locker','license','dl','drivers license'
+];
+const ALWAYS_DROP_HEADERS = [
+  'name', // force block any header containing "name"
+  'student id','sid','id number','uid','uic','unique identification code','state id','district id'
+];
+const HASH_COLUMNS = ['sis id'];
+
+/* ===== State ===== */
+let RAW = { headers: [], rows: [] };
+let ANALYSIS = { piiHeaders: [], alwaysDropHeaders: [] };
+let OPTIONS = { mode: 'drop', hashIDs: false, addPseudonymsOnExport: false, selectedDropHeaders: [] };
+let ORIGINAL_BASENAME = '';
+
+/* ===== CSV Helpers ===== */
+function parseCSV(text){
+  const rows=[]; let i=0, cur='', row=[], inQ=false;
+  while(i<text.length){
+    const ch=text[i];
+    if(inQ){
+      if(ch==='"'){ if(text[i+1]==='"'){cur+='"'; i++;} else inQ=false; }
+      else cur+=ch;
+    } else {
+      if(ch==='"') inQ=true;
+      else if(ch===','){ row.push(cur); cur=''; }
+      else if(ch==='\n'){ row.push(cur); rows.push(row); cur=''; row=[]; }
+      else if(ch==='\r'){} else cur+=ch;
+    }
+    i++;
+  }
+  row.push(cur); rows.push(row);
+  if(rows.length && rows[rows.length-1].length===1 && rows[rows.length-1][0]==='') rows.pop();
+  return rows;
+}
+function toCSV(rows){
+  const esc=s=>{ s=s==null?'':String(s); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; };
+  return rows.map(r=>r.map(esc).join(',')).join('\n');
+}
+
+/* ===== Hashing with offline fallback ===== */
+function sha256_js(input){
+  input = unescape(encodeURIComponent(String(input)));
+  const bytes = []; for (let i=0;i<input.length;i++) bytes.push(input.charCodeAt(i));
+  function rotr(n,x){ return (x>>>n)|(x<<(32-n)); }
+  function ch(x,y,z){ return (x&y)^(~x&z); }
+  function maj(x,y,z){ return (x&y)^(x&z)^(y&z); }
+  function Sigma0(x){ return rotr(2,x)^rotr(13,x)^rotr(22,x); }
+  function Sigma1(x){ return rotr(6,x)^rotr(11,x)^rotr(25,x); }
+  function sigma0(x){ return rotr(7,x)^rotr(18,x)^(x>>>3); }
+  function sigma1(x){ return rotr(17,x)^rotr(19,x)^(x>>>10); }
+  const K=[
+    0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+    0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+    0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+    0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+    0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+    0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+    0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+    0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
+  ];
+  let h0=0x6a09e667,h1=0xbb67ae85,h2=0x3c6ef372,h3=0xa54ff53a,h4=0x510e527f,h5=0x9b05688c,h6=0x1f83d9ab,h7=0x5be0cd19;
+  const l = bytes.length*8;
+  bytes.push(0x80);
+  while ((bytes.length%64) !== 56) bytes.push(0);
+  for (let i=7;i>=0;i--) bytes.push((l>>> (i*8)) & 0xff);
+  for (let i=0;i<bytes.length;i+=64){
+    const w = new Array(64);
+    for (let j=0;j<16;j++){
+      w[j] = (bytes[i+4*j]<<24)|(bytes[i+4*j+1]<<16)|(bytes[i+4*j+2]<<8)|(bytes[i+4*j+3]);
+    }
+    for (let j=16;j<64;j++){
+      w[j] = (sigma1(w[j-2]) + w[j-7] + sigma0(w[j-15]) + w[j-16])>>>0;
+    }
+    let a=h0,b=h1,c=h2,d=h3,e=h4,f=h5,g=h6,h=h7;
+    for (let j=0;j<64;j++){
+      const t1 = (h + Sigma1(e) + ch(e,f,g) + K[j] + w[j])>>>0;
+      const t2 = (Sigma0(a) + maj(a,b,c))>>>0;
+      h=g; g=f; f=e; e=(d + t1)>>>0; d=c; c=b; b=a; a=(t1 + t2)>>>0;
+    }
+    h0=(h0+a)>>>0; h1=(h1+b)>>>0; h2=(h2+c)>>>0; h3=(h3+d)>>>0; h4=(h4+e)>>>0; h5=(h5+f)>>>0; h6=(h6+g)>>>0; h7=(h7+h)>>>0;
+  }
+  function toHex(n){ return ('00000000'+(n>>>0).toString(16)).slice(-8); }
+  return toHex(h0)+toHex(h1)+toHex(h2)+toHex(h3)+toHex(h4)+toHex(h5)+toHex(h6)+toHex(h7);
+}
+async function sha256(str){
+  try{
+    if (window.crypto && crypto.subtle) {
+      const buf=new TextEncoder().encode(str==null?'':String(str));
+      const hash=await crypto.subtle.digest('SHA-256',buf);
+      return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    }
+  }catch(e){}
+  return sha256_js(str);
+}
+
+/* ===== Pseudonyms ===== */
+function makePseudonyms(n){
+  const ADJ=['Swift','Lucky','Solar','Pixel','Crimson','Mellow','Turbo','Cosmic','Neon','Brave','Clever','Frosty','Sunny','Midnight','Copper','Indigo','Pepper','Atomic','Rusty','Maple','Silver','Golden','Jazzy','Rocket','Sparky','Thunder','Breezy','Echo','Nova','Blizzard'];
+  const NOUN=['Otter','Falcon','Badger','Lynx','Raven','Turtle','Coyote','Panda','Fox','Hawk','Wolf','Koala','Dolphin','Moose','Wolverine','Eagle','Salmon','Bison','Heron','Cedar','Spruce','Birch','Meteor','Comet','Quartz','Ember','Pebble','Harbor','Voyager','Beacon'];
+  const out=[]; for(let i=0;i<n;i++) out.push(`${ADJ[i%ADJ.length]} ${NOUN[i%NOUN.length]} #${i+1}`); return out;
+}
+
+/* ===== UI Helpers ===== */
+const $=id=>document.getElementById(id);
+function setStatus(html){ $('status').innerHTML=html; }
+function setSteps(idx){
+  document.querySelectorAll('.steps .step').forEach((s,i)=>s.classList.toggle('active',i<=idx));
+  $('bar').style.width = (idx===0?33:idx===1?66:100)+'%';
+}
+function renderTable(headers,rows,elId){
+  const el=$(elId);
+  if(!headers.length){ el.innerHTML='<div class="muted">No data</div>'; return; }
+  const thead=`<thead><tr>${headers.map(h=>`<th title="${h}">${h}</th>`).join('')}</tr></thead>`;
+  const body=rows.slice(0,5).map(r=>`<tr>${headers.map((_,i)=>`<td title="${r[i]??''}">${r[i]??''}</td>`).join('')}</tr>`).join('');
+  el.innerHTML=`<table>${thead}<tbody>${body}</tbody></table>`;
+}
+function analyzeHeaders(headers){
+  const lower=headers.map(h=>String(h||'').trim().toLowerCase());
+  const pii=[], always=[];
+  lower.forEach((h,i)=>{
+    if(PII_KEYWORDS.some(k=>h.includes(k))) pii.push(headers[i]);
+    if(ALWAYS_DROP_HEADERS.some(k=>h.includes(k))) always.push(headers[i]);
+  });
+  return {piiHeaders:pii, alwaysDropHeaders:always};
+}
+function hydrateColumnPicker(headers,analysis){
+  const box=$('colSelect'); box.innerHTML='';
+  headers.forEach(h=>{
+    const row=document.createElement('label'); row.className='col-row';
+    const cb=document.createElement('input'); cb.type='checkbox'; cb.value=h; cb.name='userDrop';
+    const name=document.createElement('span'); name.className='col-name'; name.textContent=h||'(blank)';
+    const pills=document.createElement('span');
+    if(analysis.alwaysDropHeaders.includes(h)){
+      cb.disabled=true; cb.checked=true;
+      const b=document.createElement('span'); b.className='badge always'; b.textContent='always-drop'; pills.appendChild(b);
+    } else if (analysis.piiHeaders.includes(h)){
+      const b=document.createElement('span'); b.className='badge pii'; b.textContent='PII'; pills.appendChild(b);
+    }
+    row.appendChild(cb); row.appendChild(name); row.appendChild(pills); box.appendChild(row);
+  });
+}
+function collectUserSelected(){
+  return [...document.querySelectorAll('input[name="userDrop"]:checked')].filter(cb=>!cb.disabled).map(cb=>cb.value);
+}
+function filterColumns(){
+  const q=($('searchCols').value||'').trim().toLowerCase();
+  document.querySelectorAll('#colSelect .col-row').forEach(row=>{
+    const name=row.querySelector('.col-name')?.textContent?.toLowerCase()||'';
+    row.style.display=name.includes(q)?'':'none';
+  });
+}
+
+/* ===== Transform ===== */
+async function transform(headers,rows,opts,analysis){
+  const lower=headers.map(h=>String(h||'').trim().toLowerCase());
+  const piiIdx=new Set(); (analysis.piiHeaders||[]).forEach(h=>{const i=headers.indexOf(h); if(i>=0)piiIdx.add(i);});
+  const alwaysIdx=new Set(); (analysis.alwaysDropHeaders||[]).forEach(h=>{const i=headers.indexOf(h); if(i>=0)alwaysIdx.add(i);});
+  const userIdx=new Set(); (opts.selectedDropHeaders||[]).forEach(h=>{const i=headers.indexOf(h); if(i>=0)userIdx.add(i);});
+  const hashIdx=new Set(); if(opts.hashIDs) lower.forEach((h,i)=>{ if(HASH_COLUMNS.some(k=>h.includes(k))) hashIdx.add(i); });
+  const keep=[]; headers.forEach((_,i)=>{
+    if(alwaysIdx.has(i)) return;
+    if(userIdx.has(i)) return;
+    if(opts.mode==='drop' && piiIdx.has(i) && !hashIdx.has(i)) return;
+    keep.push(i);
+  });
+  const outHeaders=keep.map(i=>headers[i]);
+  const outRows=[];
+  for(const row of rows){
+    const r=[...row];
+    for(let i=0;i<r.length;i++){
+      if(alwaysIdx.has(i)||userIdx.has(i)) continue;
+      const isPII=piiIdx.has(i), isHash=hashIdx.has(i);
+      if(isHash && r[i]!=null && r[i]!=='') r[i]=await sha256(String(r[i]));
+      else if(isPII && opts.mode==='mask' && r[i]!=null && r[i]!=='') r[i]='***';
+    }
+    outRows.push(keep.map(i=>r[i]));
+  }
+  return {headers:outHeaders, rows:outRows};
+}
+
+/* ===== Export ===== */
+function download(filename,text){
+  const blob=new Blob([text],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+
+/* ===== Wire-up ===== */
+document.getElementById('bar').style.width='33%';
+document.getElementById('loadBtn').addEventListener('click', async ()=>{
+  try{
+    const f=$('file').files[0];
+    if(!f){ setStatus('<span class="bad">Choose a CSV file.</span>'); return; }
+    setStatus('Reading CSV…'); setSteps(0);
+    ORIGINAL_BASENAME = (f.name || 'data').replace(/\.[^/.]+$/, '');
+    const text=await f.text();
+    const rows=parseCSV(text);
+    if(!rows.length){ setStatus('<span class="bad">No rows found.</span>'); return; }
+    RAW.headers=rows[0]; RAW.rows=rows.slice(1);
+    ANALYSIS=analyzeHeaders(RAW.headers);
+
+    $('previewBtn').disabled=false;
+    $('exportBtn').disabled=false;
+    $('pseudonyms').disabled=false;
+    $('selAll').disabled=$('selNone').disabled=$('selPII').disabled=$('selNonPII').disabled=false;
+    $('searchCols').disabled=false;
+
+    hydrateColumnPicker(RAW.headers, ANALYSIS);
+    $('notes').innerHTML = `${ANALYSIS.piiHeaders.length ? 'PII headers: ' + ANALYSIS.piiHeaders.map(h=>'<span class="chip">'+h+'</span>').join(' ') : 'No PII headers detected.'}
+      ${ANALYSIS.alwaysDropHeaders.length ? '<br><b>Force-removed:</b> ' + ANALYSIS.alwaysDropHeaders.map(h=>'<span class="chip">'+h+'</span>').join(' ') : ''}`;
+
+    renderTable(RAW.headers, RAW.rows, 'beforeTbl');
+    setStatus('<span class="ok">Loaded.</span> Adjust options and Preview.');
+  }catch(err){
+    const b=document.getElementById('errorBox'); b.style.display='block'; b.textContent='Error loading CSV: '+(err && err.message ? err.message : String(err));
+  }
+});
+
+/* Auto‑load on file change (optional) */
+document.getElementById('file').addEventListener('change', ()=>{
+  try{
+    if (document.getElementById('autoLoad').checked) {
+      document.getElementById('loadBtn').click();
+    }
+  }catch(err){
+    const b=document.getElementById('errorBox'); b.style.display='block'; b.textContent='Error (auto‑load): '+(err && err.message ? err.message : String(err));
+  }
+});
+
+document.getElementById('previewBtn').addEventListener('click', async ()=>{
+  try{
+    OPTIONS.mode=document.querySelector('input[name="mode"]:checked').value;
+    OPTIONS.hashIDs=$('hashIDs').checked;
+    OPTIONS.addPseudonymsOnExport=$('pseudonyms').checked;
+    OPTIONS.selectedDropHeaders=collectUserSelected();
+
+    setStatus('Transforming for preview…'); setSteps(1);
+    const out=await transform(RAW.headers, RAW.rows, OPTIONS, ANALYSIS);
+    renderTable(out.headers, out.rows, 'afterTbl');
+    setStatus('<span class="ok">Preview ready.</span>');
+  }catch(err){
+    const b=document.getElementById('errorBox'); b.style.display='block'; b.textContent='Error during preview: '+(err && err.message ? err.message : String(err));
+  }
+});
+
+document.getElementById('exportBtn').addEventListener('click', async ()=>{
+  try{
+    OPTIONS.mode=document.querySelector('input[name="mode"]:checked').value;
+    OPTIONS.hashIDs=$('hashIDs').checked;
+    OPTIONS.addPseudonymsOnExport=$('pseudonyms').checked;
+    OPTIONS.selectedDropHeaders=collectUserSelected();
+
+    setStatus('Building export…'); setSteps(2);
+    const out=await transform(RAW.headers, RAW.rows, OPTIONS, ANALYSIS);
+    let headers=[...out.headers];
+    let rows=out.rows.map(r=>[...r]);
+    if(OPTIONS.addPseudonymsOnExport){
+      const pseu=makePseudonyms(rows.length);
+      headers=['Pseudonym', ...headers];
+      rows=rows.map((r,i)=>[pseu[i], ...r]);
+    }
+    if(!headers.length){
+      setStatus('<span class="bad">No columns remain after cleaning. Uncheck some removals or switch to “Mask values”.</span>');
+      return;
+    }
+    const csv=toCSV([headers, ...rows]);
+    const filename = `SANITIZED_${ORIGINAL_BASENAME}_SANITIZED.csv`;
+    download(filename, csv);
+    setStatus('<span class="ok">Exported clean CSV as <b>'+filename+'</b>.</span>');
+  }catch(err){
+    const b=document.getElementById('errorBox'); b.style.display='block'; b.textContent='Error during export: '+(err && err.message ? err.message : String(err));
+  }
+});
+
+/* Column quick-selects + filter */
+document.getElementById('selAll').addEventListener('click', ()=>{
+  document.querySelectorAll('#colSelect input[type="checkbox"]').forEach(cb=>{ if(!cb.disabled) cb.checked=true; });
+});
+document.getElementById('selNone').addEventListener('click', ()=>{
+  document.querySelectorAll('#colSelect input[type="checkbox"]').forEach(cb=>{ if(!cb.disabled) cb.checked=false; });
+});
+document.getElementById('selPII').addEventListener('click', ()=>{
+  document.querySelectorAll('#colSelect .col-row').forEach(row=>{
+    const name=row.querySelector('.col-name')?.textContent||'';
+    const isPII=ANALYSIS.piiHeaders.includes(name);
+    const cb=row.querySelector('input[type="checkbox"]');
+    if(cb && !cb.disabled) cb.checked=!!isPII;
+  });
+});
+document.getElementById('selNonPII').addEventListener('click', ()=>{
+  document.querySelectorAll('#colSelect .col-row').forEach(row=>{
+    const name=row.querySelector('.col-name')?.textContent||'';
+    const isPII=ANALYSIS.piiHeaders.includes(name);
+    const cb=row.querySelector('input[type="checkbox"]');
+    if(cb && !cb.disabled) cb.checked=!isPII;
+  });
+});
+document.getElementById('searchCols').addEventListener('input', filterColumns);
+</script>
+</body>
+</html>
