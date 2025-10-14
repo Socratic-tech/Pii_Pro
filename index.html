@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Safe Data Cleaner for Teachers</title>
+  <!-- Strict CSP: allow only self and required CDNs for initial load; block all connects otherwise -->
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self';
+             script-src 'self' https://unpkg.com https://cdn.jsdelivr.net;
+             style-src 'self' 'unsafe-inline';
+             img-src 'self' data: blob:;
+             connect-src 'self';
+             frame-ancestors 'none';
+             base-uri 'self'">
+
+  <style>
+    :root { --fg:#111; --muted:#6b7280; --bg:#f6f7f9; --card:#fff; --primary:#047857; --border:#e5e7eb; }
+    body { margin:0; font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; color:var(--fg); background:var(--bg); }
+    .container{max-width:1040px;margin:0 auto;padding:24px}
+    .title{font-size:28px;font-weight:700;margin:0 0 6px}
+    .muted{color:var(--muted)}
+    .grid{display:grid;gap:16px}
+    .two{grid-template-columns:1fr 1fr}
+    .two-1-2{grid-template-columns:2fr 1fr}
+    .card{background:var(--card);border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,.06);padding:16px}
+    .btn{padding:10px 16px;border-radius:12px;border:0;cursor:pointer}
+    .btn.primary{background:var(--primary);color:#fff}
+    .btn.ghost{background:#e5e7eb}
+    .pill{background:#f3f4f6;border-radius:999px;padding:6px 10px;display:inline-flex;align-items:center;gap:8px}
+    .chip{font-size:11px;border:0;border-radius:999px;padding:2px 8px}
+    .chip.pii.on{background:#dc2626;color:#fff}
+    .chip.pii.off{background:#fecaca;color:#7f1d1d}
+    .chip.qi.on{background:#2563eb;color:#fff}
+    .chip.qi.off{background:#bfdbfe;color:#1e3a8a}
+    table{width:100%;font-size:12px;border-collapse:collapse}
+    th{position:sticky;top:0;text-align:left;padding:8px 12px;background:#f9fafb}
+    td{padding:6px 12px;white-space:nowrap}
+    .table{overflow:auto;border:1px solid var(--border);border-radius:12px}
+    .dnd{border:2px dashed #d1d5db;border-radius:16px;padding:24px;text-align:center}
+    .progress{display:flex;gap:12px}
+    .step{display:flex;gap:8px;align-items:center;opacity:.85}
+    .step.active{opacity:1;font-weight:600}
+    .dot{width:28px;height:28px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:#e5e7eb}
+    .dot.active{background:var(--primary);color:#fff}
+    .sr-only{position:absolute;left:-10000px}
+  </style>
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <!-- React & ReactDOM UMD -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <!-- Babel (for this single-file demo). For production, precompile. -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Papa Parse -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    // ==== Lock outbound network at runtime (defense-in-depth) ====
+    (function lockNetwork(){
+      const { origin } = location;
+      const origFetch = window.fetch.bind(window);
+      window.fetch = (input, init) => {
+        const url = String(typeof input === 'string' ? input : (input && input.url));
+        if (url && !url.startsWith(origin)) throw new Error('Network blocked by policy: fetch ' + url);
+        return origFetch(input, init);
+      };
+      const origOpen = XMLHttpRequest.prototype.open;
+      XMLHttpRequest.prototype.open = function(method, url){
+        if (url && !String(url).startsWith(origin)) throw new Error('Network blocked by policy: xhr ' + url);
+        return origOpen.apply(this, arguments);
+      };
+      if ('WebSocket' in window) {
+        const OrigWS = WebSocket;
+        window.WebSocket = new Proxy(OrigWS, { construct(){ throw new Error('Network blocked by policy: websocket'); } });
+      }
+    })();
+
+    const { useState, useRef, useMemo, useEffect } = React;
+
+    // ===== Helpers =====
+    const PII_HEADER_PATTERNS = [
+      /\bname\b/i, /\bfirst\s*name\b/i, /\blast\s*name\b/i, /\bmiddle\s*name\b/i,
+      /\bstudent\s*id\b|\bstu?_?id\b|\bstate\s*id\b|\bstate\s*student\s*id\b|\bstate\s*unique\s*id\b|\bsis\s*id\b|\blocal\s*id\b|\buid\b|\bunique\s*id\b|\buser\s*uid\b|\buid\s*number\b|\bid\b/i,
+      /\bdob\b|\bbirth\s*date\b/i,
+      /\baddress\b|\bstreet\b|\bcity\b|\bstate\b|\bzip\b/i,
+      /\bemail\b/i,
+      /\bphone\b|\bcell\b|\bmobile\b|\btel\b/i,
+      /\bguid\b|\buin\b|\bssn\b/i,
+      /\bguardian\b|\bparent\b/i,
+    ];
+    const EMAIL_RE=/^[^@\s]+@[^@\s]+\.[^@\s]+$/; const PHONE_RE=/(^\+?\d[\d\s().-]{6,}\d$)/; const DATE_RE=/^(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{4}-\d{2}-\d{2})$/;
+    const DEFAULT_QI_CANDIDATES=['race','race_ethnicity','ethnicity','gender','sex','grade','school','site','ell','lep','iep','frl','frpl','frpm','disability','sped'];
+
+    function generalizeValue(header, value){
+      if(value==null) return value; const v=String(value).trim(); if(!v) return v; const h=String(header).toLowerCase();
+      if(/(^|[^a-z])(grade|grd|gr)([^a-z]|$)/.test(h)){ const n=parseInt(v.replace(/[^0-9]/g,''),10); if(!isNaN(n)){ if(n<=2) return 'K–2'; if(n<=5) return '3–5'; if(n<=8) return '6–8'; return '9–12'; } if(/k(inder)?/i.test(v)) return 'K–2'; }
+      if(/(race|ethnicity)/.test(h)){ const map=[{re:/hisp|lat/i,out:'Hispanic/Latino'},{re:/white|cauc/i,out:'White'},{re:/black|afr/i,out:'Black/African American'},{re:/asian/i,out:'Asian'},{re:/pacific|hawai/i,out:'NH/Other Pacific'},{re:/native|amerind|alaska/i,out:'Native/Alaskan'},{re:/two|multi/i,out:'Two or More'}]; for(const m of map) if(m.re.test(v)) return m.out; return 'Other/Unreported'; }
+      if(/(ell|lep|iep|frl|frpl|frpm|sped|disab)/.test(h)){ if(/^y(es)?|1|true|t$/i.test(v)) return 'Yes'; if(/^n(o)?|0|false|f$/i.test(v)) return 'No'; return 'Unknown'; }
+      return v;
+    }
+    function computeSmallNMask(rows, qiHeaders, k){
+      if(!qiHeaders.length || k<=1) return new Array(rows.length).fill(false);
+      const keyCounts=new Map(); const keys=rows.map(r=>{const key=qiHeaders.map(h=>generalizeValue(h, r[h] ?? '')).join('||'); keyCounts.set(key,(keyCounts.get(key)||0)+1); return key;});
+      return rows.map((_,i)=> (keyCounts.get(keys[i])||0) < k);
+    }
+    function toCell(v){ if(v==null) return ''; if(['string','number','boolean'].includes(typeof v)) return String(v); try{return JSON.stringify(v)}catch{return String(v)} }
+    function normalizeForCsv(rows, fieldsOpt){
+      if(!Array.isArray(rows)) throw new Error('rows must be array');
+      const fields = Array.isArray(fieldsOpt)&&fieldsOpt.length ? [...fieldsOpt] : Array.from(rows.reduce((s,r)=>{ if(r&&typeof r==='object'&&!Array.isArray(r)) Object.keys(r).forEach(k=>s.add(k)); return s; }, new Set()));
+      const data = rows.map(r=>{ const o=(r&&typeof r==='object'&&!Array.isArray(r))?r:{value:r}; const out={}; for(const f of fields) out[f]=toCell(o[f]); return out;});
+      return { fields, data };
+    }
+    function unparseSafe(rows, fields){ const {fields: f, data} = normalizeForCsv(rows, fields); return Papa.unparse({ fields: f, data }); }
+
+    // ===== App =====
+    function App(){
+      const fileInput=React.useRef(null);
+      const dropRef=React.useRef(null);
+      const [rows,setRows]=React.useState([]);
+      const [headers,setHeaders]=React.useState([]);
+      const [piiCols,setPiiCols]=React.useState(new Set());
+      const [qiCols,setQiCols]=React.useState(new Set());
+      const [status,setStatus]=React.useState('');
+      const [preset,setPreset]=React.useState('Balanced');
+      const [k,setK]=React.useState(5);
+      const [suppressMode,setSuppressMode]=React.useState('blank');
+      const [step,setStep]=React.useState(1);
+
+      // Drag & drop
+      React.useEffect(()=>{
+        const el=dropRef.current; if(!el) return;
+        const prevent=e=>{e.preventDefault();e.stopPropagation();};
+        const onDrop=e=>{prevent(e); const f=e.dataTransfer?.files?.[0]; if(f) onFile({ target:{ files:[f] } }); };
+        ['dragenter','dragover','dragleave','drop'].forEach(ev=>el.addEventListener(ev,prevent));
+        el.addEventListener('drop', onDrop);
+        return ()=>{ ['dragenter','dragover','dragleave','drop'].forEach(ev=>el.removeEventListener(ev,prevent)); el.removeEventListener('drop', onDrop); };
+      },[]);
+
+      function autoDetect(columns, sampleRows){
+        const suggestedPII=new Set(); const suggestedQI=new Set();
+        columns.forEach(h=>{ if(PII_HEADER_PATTERNS.some(re=>re.test(String(h)))) suggestedPII.add(h); });
+        const n=Math.min(50, sampleRows.length);
+        for(const h of columns){
+          let emails=0,phones=0,dates=0;
+          for(let i=0;i<n;i++){ const v=String(sampleRows[i]?.[h] ?? '').trim(); if(!v) continue; if(EMAIL_RE.test(v)) emails++; else if(PHONE_RE.test(v)) phones++; else if(DATE_RE.test(v)) dates++; }
+          if(emails||phones||dates) suggestedPII.add(h);
+        }
+        const lc=columns.map(c=>String(c||'').toLowerCase()); lc.forEach((low,idx)=>{ DEFAULT_QI_CANDIDATES.forEach(cand=>{ if(low.includes(cand)) suggestedQI.add(columns[idx]); }); });
+        return { suggestedPII, suggestedQI };
+      }
+
+      function onFile(e){
+        const file=e.target.files?.[0]; if(!file) return;
+        setStatus('Reading file…');
+        Papa.parse(file,{ header:true, skipEmptyLines:true, complete:(res)=>{
+          const rows=res.data||[]; const cols=res.meta?.fields||Object.keys(rows[0]||{});
+          if(!rows.length){ setStatus('That file looks empty.'); return; }
+          setRows(rows); setHeaders(cols);
+          const { suggestedPII, suggestedQI } = autoDetect(cols, rows);
+          setPiiCols(suggestedPII); setQiCols(suggestedQI);
+          setStatus('Loaded ' + rows.length + ' rows, ' + cols.length + ' columns.');
+          setStep(2);
+        }, error:(err)=> setStatus('Parse error: ' + err.message)});
+      }
+
+      const headerChips = React.useMemo(()=> headers.map(h=>({ name:h, isPII:(piiCols.has(h)||PII_HEADER_PATTERNS.some(re=>re.test(String(h)))), isQI:qiCols.has(h) })), [headers,piiCols,qiCols]);
+      const previewRows = React.useMemo(()=> rows.slice(0,8), [rows]);
+      const toggleSet = (setter, value)=> setter(prev=>{ const next=new Set(prev); next.has(value)?next.delete(value):next.add(value); return next; });
+
+      function computeOutFields(headers, piiSet){
+        const out=[];
+        for(const h of headers){ if(!piiSet.has(h)) out.push(h); }
+        return out;
+      }
+
+      async function sanitizeRows(){
+        if(!headers.length || !rows.length) return { sanitized:[], report:{}, fields:[] };
+        const pii=new Set(piiCols); headers.forEach(h=>{ if(PII_HEADER_PATTERNS.some(re=>re.test(String(h)))) pii.add(h); });
+        const qiHeaders = Array.from(qiCols);
+        const outFields = computeOutFields(headers, pii);
+        const finalRows = rows.map(r=>{
+          const nr={};
+          for(const f of outFields){ let v=r[f]; if(qiHeaders.includes(f)) v=generalizeValue(f, v); nr[f]=v; }
+          return nr;
+        });
+        const mask = computeSmallNMask(finalRows, qiHeaders, k);
+        const suppressed=[];
+        for(let i=0;i<finalRows.length;i++){ const row={...finalRows[i]}; if(mask[i]){ if(suppressMode==='drop') continue; for(const h of Object.keys(row)) if(!qiHeaders.includes(h)) row[h]=''; } suppressed.push(row); }
+        const report={ total_rows:rows.length, total_cols:headers.length, removed_pii_columns:Array.from(pii), qi_columns:qiHeaders, k_threshold:k, suppression_mode:suppressMode, rows_removed:rows.length - suppressed.length };
+        return { sanitized:suppressed, report, fields:outFields };
+      }
+
+      async function handleDownload(){
+        const { sanitized, report, fields } = await sanitizeRows();
+        if(!sanitized.length){ setStatus('Nothing to download — check your file & settings.'); return; }
+        const csv = unparseSafe(sanitized, fields);
+        const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='cleaned_students.csv'; a.click(); URL.revokeObjectURL(url);
+        const rb = new Blob([JSON.stringify(report,null,2)], { type:'application/json' });
+        const url2 = URL.createObjectURL(rb); const a2=document.createElement('a'); a2.href=url2; a2.download='masking_report.json'; a2.click(); URL.revokeObjectURL(url2);
+        setStatus('Your cleaned files are ready.');
+      }
+
+      return (
+        <div className="container">
+          <h1 className="title">Safe Data Cleaner for Teachers</h1>
+          <p className="muted">Remove student‑identifying info before analysis. <b>Runs entirely on your computer.</b></p>
+
+          <div className="progress" style={{marginTop:12}}>
+            {[1,2,3,4].map(n=> (
+              <div key={n} className={'step ' + (n===step?'active':'')}>
+                <div className={'dot ' + (n===step?'active':'')}>{n}</div>
+                <span>{n===1?'Upload':n===2?'Review':n===3?'Privacy':'Download'}</span>
+              </div>
+            ))}
+          </div>
+
+          {step===1 && (
+            <div className="grid two" style={{marginTop:16}}>
+              <div className="card">
+                <h2 style={{fontSize:18,fontWeight:600}}>Step 1 — Add your CSV</h2>
+                <div ref={dropRef} className="dnd" role="button" tabIndex="0" aria-label="Drop CSV here">
+                  <p>Drag & drop your CSV here</p>
+                  <p className="muted" style={{fontSize:12}}>or</p>
+                  <button className="btn primary" onClick={()=>fileInput.current?.click()}>Choose a file</button>
+                  <input className="sr-only" type="file" accept=".csv" ref={fileInput} onChange={onFile} />
+                </div>
+                <p className="muted" style={{fontSize:12,marginTop:8}}>Tip: Export your student list as a CSV file from your SIS or gradebook.</p>
+                <div style={{textAlign:'right',marginTop:12}}>
+                  <button className="btn primary" onClick={()=>setStep(2)}>Looks good — Continue</button>
+                </div>
+              </div>
+              <div className="card">
+                <h3 style={{fontSize:16,fontWeight:600}}>What gets removed?</h3>
+                <ul>
+                  <li>Names, emails, phone numbers, addresses</li>
+                  <li>ID columns (Student ID, UID, local ID)</li>
+                  <li>Birth dates and other direct identifiers</li>
+                </ul>
+                <h3 style={{fontSize:16,fontWeight:600, marginTop:12}}>What stays (generalized)?</h3>
+                <ul>
+                  <li>Grade bands (K–2, 3–5, 6–8, 9–12)</li>
+                  <li>Gender, race/ethnicity buckets</li>
+                  <li>Program flags (ELL, IEP, FRL) as Yes/No</li>
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {step===2 && (
+            <div className="grid two-1-2" style={{marginTop:16}}>
+              <div className="card">
+                <h2 style={{fontSize:18,fontWeight:600}}>Step 2 — Review columns</h2>
+                <p className="muted">Toggle which columns are PII vs QI.</p>
+                <div style={{marginTop:10, display:'flex', flexWrap:'wrap', gap:8}}>
+                  {headerChips.map(c=> (
+                    <div key={c.name} className="pill">
+                      <span style={{fontFamily:'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace'}}>{c.name}</span>
+                      <button className={'chip pii ' + ((piiCols.has(c.name)||PII_HEADER_PATTERNS.some(re=>re.test(String(c.name))))?'on':'off')} onClick={()=>toggleSet(setPiiCols, c.name)}>PII</button>
+                      <button className={'chip qi ' + (qiCols.has(c.name)?'on':'off')} onClick={()=>toggleSet(setQiCols, c.name)}>QI</button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="table" style={{marginTop:12}}>
+                  <table>
+                    <thead><tr>{headers.map(h=> <th key={h} style={{color: piiCols.has(h)?'#991b1b': qiCols.has(h)?'#1d4ed8':'#374151'}}>{h}</th>)}</tr></thead>
+                    <tbody>
+                      {previewRows.map((r,idx)=> (
+                        <tr key={idx} style={{background: idx%2? '#fafafa':'#fff'}}>
+                          {headers.map(h=> <td key={h}>{String(r[h]??'')}</td>)}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div style={{marginTop:12, display:'flex', gap:8}}>
+                  <button className="btn ghost" onClick={()=>setStep(1)}>Back</button>
+                  <button className="btn primary" onClick={()=>setStep(3)}>Continue</button>
+                </div>
+              </div>
+              <div className="card">
+                <h3 style={{fontSize:16,fontWeight:600}}>Glossary</h3>
+                <p><b>PII</b> = personal info (removed).</p>
+                <p><b>QI</b> = demographic/group columns (kept, generalized).</p>
+              </div>
+            </div>
+          )}
+
+          {step===3 && (
+            <div className="grid two-1-2" style={{marginTop:16}}>
+              <div className="card">
+                <h2 style={{fontSize:18,fontWeight:600}}>Step 3 — Privacy settings</h2>
+                <div className="grid two" style={{marginTop:8}}>
+                  <div className="card" style={{padding:12}}>
+                    <h4 style={{fontSize:14,fontWeight:600}}>Choose a preset</h4>
+                    <div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:8}}>
+                      {['FERPA-Strict','Balanced','Exploratory'].map(key=> (
+                        <button key={key} className={'btn ' + (preset===key?'primary':'')} style={{border:'1px solid var(--border)'}} onClick={()=>setPreset(key)}>{key}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="card" style={{padding:12}}>
+                    <h4 style={{fontSize:14,fontWeight:600}}>Advanced (optional)</h4>
+                    <label style={{display:'block',fontSize:12,marginTop:8}}>k threshold</label>
+                    <input type="number" min="2" max="20" value={k} onChange={(e)=>setK(parseInt(e.target.value||'5',10))} style={{width:'100%',padding:8,border:'1px solid var(--border)',borderRadius:8}} />
+                    <label style={{display:'block',fontSize:12,marginTop:8}}>Suppression mode</label>
+                    <select value={suppressMode} onChange={(e)=>setSuppressMode(e.target.value)} style={{width:'100%',padding:8,border:'1px solid var(--border)',borderRadius:8}}>
+                      <option value="blank">Blank non‑QI cells for small‑N rows</option>
+                      <option value="drop">Drop small‑N rows</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="card" style={{padding:12, marginTop:8}}>
+                  <h4 style={{fontSize:14,fontWeight:600}}>Checklist</h4>
+                  <ul>
+                    <li>Small groups (N &lt; k) won’t reveal students.</li>
+                    <li>Names/emails/phones are removed entirely.</li>
+                    <li>Grades and race are grouped to protect privacy.</li>
+                  </ul>
+                </div>
+                <div style={{marginTop:12, display:'flex', gap:8}}>
+                  <button className="btn ghost" onClick={()=>setStep(2)}>Back</button>
+                  <button className="btn primary" onClick={()=>setStep(4)}>Continue</button>
+                </div>
+              </div>
+              <div className="card">
+                <h3 style={{fontSize:16,fontWeight:600}}>Reminder</h3>
+                <p>Even after de‑identification, don’t publicly share tiny groups. Use <b>FERPA‑Strict</b> for files leaving your team.</p>
+              </div>
+            </div>
+          )}
+
+          {step===4 && (
+            <div className="grid two-1-2" style={{marginTop:16}}>
+              <div className="card">
+                <h2 style={{fontSize:18,fontWeight:600}}>Step 4 — Download</h2>
+                <p className="muted">You’ll get a sanitized CSV plus a short JSON report of changes.</p>
+                <div style={{marginTop:12, display:'flex', gap:8}}>
+                  <button className="btn primary" onClick={handleDownload}>Download sanitized CSV + report</button>
+                  <button className="btn ghost" onClick={()=>setStep(3)}>Back</button>
+                </div>
+                <p className="muted" style={{fontSize:12,marginTop:8}}>Tip: Keep the report with your files so others understand the settings used (k, suppressed groups, etc.).</p>
+              </div>
+              <div className="card">
+                <h3 style={{fontSize:16,fontWeight:600}}>What’s next?</h3>
+                <ul>
+                  <li>Load the sanitized CSV into your dashboard or narrative tool.</li>
+                  <li>Share only aggregates that meet the small‑N threshold.</li>
+                  <li>Store your salt securely if you used pseudonyms.</li>
+                </ul>
+              </div>
+            </div>
+          )}
+
+          <div className="card" style={{marginTop:16}}>
+            <h3 style={{fontSize:16,fontWeight:600}}>Status</h3>
+            <p className="muted" style={{whiteSpace:'pre-wrap'}}>{status || (step===1?'No file loaded yet.':'Follow the steps above.')}</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Tiny self-tests
+    (function selfTests(){
+      const csv1 = unparseSafe([{a:1,b:2},{a:3}]); if(!csv1.includes('a')||!csv1.includes('b')) console.error('unparseSafe fields fail');
+      const uidHeaders=['UID','uid number','local id']; const bad = uidHeaders.some(h=>!PII_HEADER_PATTERNS.some(re=>re.test(h))); if(bad) console.error('UID pattern miss');
+    })();
+
+    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
+    }
+  </script>
+</body>
+</html>
