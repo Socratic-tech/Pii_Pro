@@ -1,382 +1,435 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="auto">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Safe Data Cleaner for Teachers</title>
-  <!-- Strict CSP: allow only self and required CDNs for initial load; block all connects otherwise -->
-  <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self';
-             script-src 'self' https://unpkg.com https://cdn.jsdelivr.net;
-             style-src 'self' 'unsafe-inline';
-             img-src 'self' data: blob:;
-             connect-src 'self';
-             frame-ancestors 'none';
-             base-uri 'self'">
-
-  <style>
-    :root { --fg:#111; --muted:#6b7280; --bg:#f6f7f9; --card:#fff; --primary:#047857; --border:#e5e7eb; }
-    body { margin:0; font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; color:var(--fg); background:var(--bg); }
-    .container{max-width:1040px;margin:0 auto;padding:24px}
-    .title{font-size:28px;font-weight:700;margin:0 0 6px}
-    .muted{color:var(--muted)}
-    .grid{display:grid;gap:16px}
-    .two{grid-template-columns:1fr 1fr}
-    .two-1-2{grid-template-columns:2fr 1fr}
-    .card{background:var(--card);border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,.06);padding:16px}
-    .btn{padding:10px 16px;border-radius:12px;border:0;cursor:pointer}
-    .btn.primary{background:var(--primary);color:#fff}
-    .btn.ghost{background:#e5e7eb}
-    .pill{background:#f3f4f6;border-radius:999px;padding:6px 10px;display:inline-flex;align-items:center;gap:8px}
-    .chip{font-size:11px;border:0;border-radius:999px;padding:2px 8px}
-    .chip.pii.on{background:#dc2626;color:#fff}
-    .chip.pii.off{background:#fecaca;color:#7f1d1d}
-    .chip.qi.on{background:#2563eb;color:#fff}
-    .chip.qi.off{background:#bfdbfe;color:#1e3a8a}
-    table{width:100%;font-size:12px;border-collapse:collapse}
-    th{position:sticky;top:0;text-align:left;padding:8px 12px;background:#f9fafb}
-    td{padding:6px 12px;white-space:nowrap}
-    .table{overflow:auto;border:1px solid var(--border);border-radius:12px}
-    .dnd{border:2px dashed #d1d5db;border-radius:16px;padding:24px;text-align:center}
-    .progress{display:flex;gap:12px}
-    .step{display:flex;gap:8px;align-items:center;opacity:.85}
-    .step.active{opacity:1;font-weight:600}
-    .dot{width:28px;height:28px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:#e5e7eb}
-    .dot.active{background:var(--primary);color:#fff}
-    .sr-only{position:absolute;left:-10000px}
-  </style>
-
-  <link rel="manifest" href="manifest.webmanifest">
-  <!-- React & ReactDOM UMD -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <!-- Babel (for this single-file demo). For production, precompile. -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <!-- Papa Parse -->
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>PII-Pro — Educator Wizard (SANITIZED naming)</title>
+<style>
+  :root{
+    --brand:#0b5fff;
+    --brand-2:#5f9bff;
+    --border:#e5e7eb;
+    --muted:#6b7280;
+    --ok:#16a34a;
+    --bad:#ef4444;
+    --ink:#0f172a;
+    --bg:#f8fafc;
+    --card:#ffffff;
+    --chip:#f1f5f9;
+    --table-border:#e5e7eb;
+    --callout-bg:#fff8db;
+    --callout-border:#e6b800;
+  }
+  [data-theme="dark"]{
+    --brand:#4a8bff;
+    --brand-2:#8cb3ff;
+    --border:#283548;
+    --muted:#9aa5b1;
+    --ok:#22c55e;
+    --bad:#f87171;
+    --ink:#e5e7eb;
+    --bg:#0f172a;
+    --card:#121a2a;
+    --chip:#111827;
+    --table-border:#1f2937;
+    --callout-bg:#1f2937;
+    --callout-border:#374151;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--ink);font:14px system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;margin:0}
+  a{color:var(--brand);text-decoration:none}
+  .shell{max-width:1080px;margin:28px auto 64px;padding:0 20px}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:14px}
+  .header-left{display:flex;align-items:center;gap:12px}
+  .logo{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;color:#fff;font-weight:800;background:linear-gradient(135deg,var(--brand),var(--brand-2))}
+  h1{font-size:20px;margin:0}
+  .subtitle{color:var(--muted);font-size:12.5px;margin-top:2px}
+  .toggle{display:flex;align-items:center;gap:8px}
+  .toggle button{padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:transparent;color:var(--ink);cursor:pointer}
+  .toggle button.active{background:var(--brand);border-color:var(--brand);color:#fff}
+  .muted{color:var(--muted);font-size:12px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin:12px 0}
+  .callout{border:1px solid var(--callout-border);background:var(--callout-bg);border-radius:10px;padding:10px}
+  label{font-size:14px}
+  input[type="file"],select,button{font:inherit;color:inherit}
+  button{padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:transparent;cursor:pointer}
+  button.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+  button.ghost{background:transparent}
+  button:disabled{opacity:.55;cursor:not-allowed}
+  .cols{max-height:220px;overflow:auto;border:1px solid var(--border);border-radius:8px;padding:6px;min-width:260px;background:transparent}
+  .cols label{display:flex;gap:8px;padding:3px 2px}
+  .badge{font-size:10px;border:1px solid var(--border);border-radius:6px;padding:0 6px}
+  .badge.pii{background:rgba(239,68,68,.12);border-color:#f0b5b5;color:#fca5a5}
+  [data-theme="dark"] .badge.pii{border-color:#7f1d1d;color:#fecaca;background:rgba(239,68,68,.12)}
+  .badge.always{background:rgba(59,130,246,.12);border-color:#93c5fd;color:#93c5fd}
+  [data-theme="dark"] .badge.always{border-color:#1d4ed8;color:#bfdbfe}
+  .chip{display:inline-block;border:1px solid var(--border);border-radius:999px;padding:2px 8px;margin:2px 6px 0 0;font-size:11px;background:var(--chip)}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{border-bottom:1px solid var(--table-border);padding:7px;text-align:left;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .grid{display:grid;gap:10px;grid-template-columns:1fr}
+  @media(min-width:900px){.grid{grid-template-columns:1fr 1fr}}
+  .ok{color:var(--ok)}.bad{color:var(--bad)}
+  .search{border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:220px;background:transparent;color:inherit}
+  .steps{display:flex;gap:10px;align-items:center;margin:14px 0 6px}
+  .step{display:flex;align-items:center;gap:8px;color:var(--muted);font-weight:600}
+  .step .dot{width:22px;height:22px;border-radius:999px;background:rgba(148,163,184,.3);color:var(--ink);display:grid;place-items:center;font-size:12px}
+  .step.active{color:var(--brand)}
+  .step.active .dot{background:var(--brand);color:#fff}
+  .progress{height:8px;background:rgba(148,163,184,.3);border-radius:999px;overflow:hidden}
+  .bar{height:8px;background:linear-gradient(90deg,var(--brand) 0%,var(--brand-2) 100%);border-radius:999px;width:33%}
+  .instructions h3{margin:0 0 6px}
+  .instructions ol{margin:6px 0 0 18px}
+  .instructions li{margin:6px 0}
+</style>
 </head>
 <body>
-  <div id="root"></div>
+<div class="shell">
+  <header>
+    <div class="header-left">
+      <div class="logo">P</div>
+      <div>
+        <h1>PII-Pro — Educator Wizard</h1>
+        <div class="subtitle">Load CSV → Review → Export — pseudonyms can be toggled after upload</div>
+      </div>
+    </div>
+    <div class="toggle" role="group" aria-label="Theme toggle">
+      <button id="btnLight">Light</button>
+      <button id="btnAuto" class="active">Auto</button>
+      <button id="btnDark">Dark</button>
+    </div>
+  </header>
 
-  <script type="text/babel">
-    // ==== Lock outbound network at runtime (defense-in-depth) ====
-    (function lockNetwork(){
-      const { origin } = location;
-      const origFetch = window.fetch.bind(window);
-      window.fetch = (input, init) => {
-        const url = String(typeof input === 'string' ? input : (input && input.url));
-        if (url && !url.startsWith(origin)) throw new Error('Network blocked by policy: fetch ' + url);
-        return origFetch(input, init);
-      };
-      const origOpen = XMLHttpRequest.prototype.open;
-      XMLHttpRequest.prototype.open = function(method, url){
-        if (url && !String(url).startsWith(origin)) throw new Error('Network blocked by policy: xhr ' + url);
-        return origOpen.apply(this, arguments);
-      };
-      if ('WebSocket' in window) {
-        const OrigWS = WebSocket;
-        window.WebSocket = new Proxy(OrigWS, { construct(){ throw new Error('Network blocked by policy: websocket'); } });
-      }
-    })();
+  <div class="steps">
+    <div class="step active"><div class="dot">1</div>Upload</div>
+    <div class="step"><div class="dot">2</div>Review</div>
+    <div class="step"><div class="dot">3</div>Export</div>
+  </div>
+  <div class="progress"><div class="bar" id="bar"></div></div>
 
-    const { useState, useRef, useMemo, useEffect } = React;
+  <div class="card instructions" aria-labelledby="instr-title">
+    <h3 id="instr-title">📘 Instructions</h3>
+    <ol>
+      <li><b>Upload a CSV</b>: Choose your file, then click <b>Load CSV</b>.</li>
+      <li><b>Review options</b>:
+        <ul>
+          <li><b>Drop</b> or <b>Mask</b> PII.</li>
+          <li>Optionally <b>Hash ID-like</b> columns.</li>
+          <li><b>Pseudonyms</b> can be toggled after upload (added to the exported CSV only).</li>
+          <li>Select any <b>extra columns</b> you want to remove.</li>
+        </ul>
+      </li>
+      <li><b>Preview</b>: Compare <i>Before</i> vs <i>After</i> (first 5 rows).</li>
+      <li><b>Export</b>: Download the cleaned file as <code>SANITIZED_&lt;original&gt;_SANITIZED.csv</code>.</li>
+      <li><b>Themes</b>: Use <b>Light / Auto / Dark</b> in the top-right to switch appearance; your choice is saved.</li>
+    </ol>
+    <p class="muted" style="margin-top:8px"><b>Reminder:</b> You are responsible for verifying PII handling (FERPA, district policies).</p>
+  </div>
 
-    // ===== Helpers =====
-    const PII_HEADER_PATTERNS = [
-      /\bname\b/i, /\bfirst\s*name\b/i, /\blast\s*name\b/i, /\bmiddle\s*name\b/i,
-      /\bstudent\s*id\b|\bstu?_?id\b|\bstate\s*id\b|\bstate\s*student\s*id\b|\bstate\s*unique\s*id\b|\bsis\s*id\b|\blocal\s*id\b|\buid\b|\bunique\s*id\b|\buser\s*uid\b|\buid\s*number\b|\bid\b/i,
-      /\bdob\b|\bbirth\s*date\b/i,
-      /\baddress\b|\bstreet\b|\bcity\b|\bstate\b|\bzip\b/i,
-      /\bemail\b/i,
-      /\bphone\b|\bcell\b|\bmobile\b|\btel\b/i,
-      /\bguid\b|\buin\b|\bssn\b/i,
-      /\bguardian\b|\bparent\b/i,
-    ];
-    const EMAIL_RE=/^[^@\s]+@[^@\s]+\.[^@\s]+$/; const PHONE_RE=/(^\+?\d[\d\s().-]{6,}\d$)/; const DATE_RE=/^(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{4}-\d{2}-\d{2})$/;
-    const DEFAULT_QI_CANDIDATES=['race','race_ethnicity','ethnicity','gender','sex','grade','school','site','ell','lep','iep','frl','frpl','frpm','disability','sped'];
+  <div class="card">
+    <div class="row">
+      <input type="file" id="file" accept=".csv,text/csv" />
+      <button id="loadBtn" class="primary">Load CSV</button>
+      <span id="status" class="muted"></span>
+    </div>
 
-    function generalizeValue(header, value){
-      if(value==null) return value; const v=String(value).trim(); if(!v) return v; const h=String(header).toLowerCase();
-      if(/(^|[^a-z])(grade|grd|gr)([^a-z]|$)/.test(h)){ const n=parseInt(v.replace(/[^0-9]/g,''),10); if(!isNaN(n)){ if(n<=2) return 'K–2'; if(n<=5) return '3–5'; if(n<=8) return '6–8'; return '9–12'; } if(/k(inder)?/i.test(v)) return 'K–2'; }
-      if(/(race|ethnicity)/.test(h)){ const map=[{re:/hisp|lat/i,out:'Hispanic/Latino'},{re:/white|cauc/i,out:'White'},{re:/black|afr/i,out:'Black/African American'},{re:/asian/i,out:'Asian'},{re:/pacific|hawai/i,out:'NH/Other Pacific'},{re:/native|amerind|alaska/i,out:'Native/Alaskan'},{re:/two|multi/i,out:'Two or More'}]; for(const m of map) if(m.re.test(v)) return m.out; return 'Other/Unreported'; }
-      if(/(ell|lep|iep|frl|frpl|frpm|sped|disab)/.test(h)){ if(/^y(es)?|1|true|t$/i.test(v)) return 'Yes'; if(/^n(o)?|0|false|f$/i.test(v)) return 'No'; return 'Unknown'; }
-      return v;
-    }
-    function computeSmallNMask(rows, qiHeaders, k){
-      if(!qiHeaders.length || k<=1) return new Array(rows.length).fill(false);
-      const keyCounts=new Map(); const keys=rows.map(r=>{const key=qiHeaders.map(h=>generalizeValue(h, r[h] ?? '')).join('||'); keyCounts.set(key,(keyCounts.get(key)||0)+1); return key;});
-      return rows.map((_,i)=> (keyCounts.get(keys[i])||0) < k);
-    }
-    function toCell(v){ if(v==null) return ''; if(['string','number','boolean'].includes(typeof v)) return String(v); try{return JSON.stringify(v)}catch{return String(v)} }
-    function normalizeForCsv(rows, fieldsOpt){
-      if(!Array.isArray(rows)) throw new Error('rows must be array');
-      const fields = Array.isArray(fieldsOpt)&&fieldsOpt.length ? [...fieldsOpt] : Array.from(rows.reduce((s,r)=>{ if(r&&typeof r==='object'&&!Array.isArray(r)) Object.keys(r).forEach(k=>s.add(k)); return s; }, new Set()));
-      const data = rows.map(r=>{ const o=(r&&typeof r==='object'&&!Array.isArray(r))?r:{value:r}; const out={}; for(const f of fields) out[f]=toCell(o[f]); return out;});
-      return { fields, data };
-    }
-    function unparseSafe(rows, fields){ const {fields: f, data} = normalizeForCsv(rows, fields); return Papa.unparse({ fields: f, data }); }
+    <div class="row">
+      <label><input type="radio" name="mode" value="drop" checked /> Drop PII columns</label>
+      <label><input type="radio" name="mode" value="mask" /> Mask values (keep columns)</label>
+      <label><input type="checkbox" id="hashIDs" /> Hash ID-like columns</label>
+      <label title="Added only to the exported CSV"><input type="checkbox" id="pseudonyms" disabled /> Add pseudonyms on export</label>
+    </div>
 
-    // ===== App =====
-    function App(){
-      const fileInput=React.useRef(null);
-      const dropRef=React.useRef(null);
-      const [rows,setRows]=React.useState([]);
-      const [headers,setHeaders]=React.useState([]);
-      const [piiCols,setPiiCols]=React.useState(new Set());
-      const [qiCols,setQiCols]=React.useState(new Set());
-      const [status,setStatus]=React.useState('');
-      const [preset,setPreset]=React.useState('Balanced');
-      const [k,setK]=React.useState(5);
-      const [suppressMode,setSuppressMode]=React.useState('blank');
-      const [step,setStep]=React.useState(1);
-
-      // Drag & drop
-      React.useEffect(()=>{
-        const el=dropRef.current; if(!el) return;
-        const prevent=e=>{e.preventDefault();e.stopPropagation();};
-        const onDrop=e=>{prevent(e); const f=e.dataTransfer?.files?.[0]; if(f) onFile({ target:{ files:[f] } }); };
-        ['dragenter','dragover','dragleave','drop'].forEach(ev=>el.addEventListener(ev,prevent));
-        el.addEventListener('drop', onDrop);
-        return ()=>{ ['dragenter','dragover','dragleave','drop'].forEach(ev=>el.removeEventListener(ev,prevent)); el.removeEventListener('drop', onDrop); };
-      },[]);
-
-      function autoDetect(columns, sampleRows){
-        const suggestedPII=new Set(); const suggestedQI=new Set();
-        columns.forEach(h=>{ if(PII_HEADER_PATTERNS.some(re=>re.test(String(h)))) suggestedPII.add(h); });
-        const n=Math.min(50, sampleRows.length);
-        for(const h of columns){
-          let emails=0,phones=0,dates=0;
-          for(let i=0;i<n;i++){ const v=String(sampleRows[i]?.[h] ?? '').trim(); if(!v) continue; if(EMAIL_RE.test(v)) emails++; else if(PHONE_RE.test(v)) phones++; else if(DATE_RE.test(v)) dates++; }
-          if(emails||phones||dates) suggestedPII.add(h);
-        }
-        const lc=columns.map(c=>String(c||'').toLowerCase()); lc.forEach((low,idx)=>{ DEFAULT_QI_CANDIDATES.forEach(cand=>{ if(low.includes(cand)) suggestedQI.add(columns[idx]); }); });
-        return { suggestedPII, suggestedQI };
-      }
-
-      function onFile(e){
-        const file=e.target.files?.[0]; if(!file) return;
-        setStatus('Reading file…');
-        Papa.parse(file,{ header:true, skipEmptyLines:true, complete:(res)=>{
-          const rows=res.data||[]; const cols=res.meta?.fields||Object.keys(rows[0]||{});
-          if(!rows.length){ setStatus('That file looks empty.'); return; }
-          setRows(rows); setHeaders(cols);
-          const { suggestedPII, suggestedQI } = autoDetect(cols, rows);
-          setPiiCols(suggestedPII); setQiCols(suggestedQI);
-          setStatus('Loaded ' + rows.length + ' rows, ' + cols.length + ' columns.');
-          setStep(2);
-        }, error:(err)=> setStatus('Parse error: ' + err.message)});
-      }
-
-      const headerChips = React.useMemo(()=> headers.map(h=>({ name:h, isPII:(piiCols.has(h)||PII_HEADER_PATTERNS.some(re=>re.test(String(h)))), isQI:qiCols.has(h) })), [headers,piiCols,qiCols]);
-      const previewRows = React.useMemo(()=> rows.slice(0,8), [rows]);
-      const toggleSet = (setter, value)=> setter(prev=>{ const next=new Set(prev); next.has(value)?next.delete(value):next.add(value); return next; });
-
-      function computeOutFields(headers, piiSet){
-        const out=[];
-        for(const h of headers){ if(!piiSet.has(h)) out.push(h); }
-        return out;
-      }
-
-      async function sanitizeRows(){
-        if(!headers.length || !rows.length) return { sanitized:[], report:{}, fields:[] };
-        const pii=new Set(piiCols); headers.forEach(h=>{ if(PII_HEADER_PATTERNS.some(re=>re.test(String(h)))) pii.add(h); });
-        const qiHeaders = Array.from(qiCols);
-        const outFields = computeOutFields(headers, pii);
-        const finalRows = rows.map(r=>{
-          const nr={};
-          for(const f of outFields){ let v=r[f]; if(qiHeaders.includes(f)) v=generalizeValue(f, v); nr[f]=v; }
-          return nr;
-        });
-        const mask = computeSmallNMask(finalRows, qiHeaders, k);
-        const suppressed=[];
-        for(let i=0;i<finalRows.length;i++){ const row={...finalRows[i]}; if(mask[i]){ if(suppressMode==='drop') continue; for(const h of Object.keys(row)) if(!qiHeaders.includes(h)) row[h]=''; } suppressed.push(row); }
-        const report={ total_rows:rows.length, total_cols:headers.length, removed_pii_columns:Array.from(pii), qi_columns:qiHeaders, k_threshold:k, suppression_mode:suppressMode, rows_removed:rows.length - suppressed.length };
-        return { sanitized:suppressed, report, fields:outFields };
-      }
-
-      async function handleDownload(){
-        const { sanitized, report, fields } = await sanitizeRows();
-        if(!sanitized.length){ setStatus('Nothing to download — check your file & settings.'); return; }
-        const csv = unparseSafe(sanitized, fields);
-        const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='cleaned_students.csv'; a.click(); URL.revokeObjectURL(url);
-        const rb = new Blob([JSON.stringify(report,null,2)], { type:'application/json' });
-        const url2 = URL.createObjectURL(rb); const a2=document.createElement('a'); a2.href=url2; a2.download='masking_report.json'; a2.click(); URL.revokeObjectURL(url2);
-        setStatus('Your cleaned files are ready.');
-      }
-
-      return (
-        <div className="container">
-          <h1 className="title">Safe Data Cleaner for Teachers</h1>
-          <p className="muted">Remove student‑identifying info before analysis. <b>Runs entirely on your computer.</b></p>
-
-          <div className="progress" style={{marginTop:12}}>
-            {[1,2,3,4].map(n=> (
-              <div key={n} className={'step ' + (n===step?'active':'')}>
-                <div className={'dot ' + (n===step?'active':'')}>{n}</div>
-                <span>{n===1?'Upload':n===2?'Review':n===3?'Privacy':'Download'}</span>
-              </div>
-            ))}
-          </div>
-
-          {step===1 && (
-            <div className="grid two" style={{marginTop:16}}>
-              <div className="card">
-                <h2 style={{fontSize:18,fontWeight:600}}>Step 1 — Add your CSV</h2>
-                <div ref={dropRef} className="dnd" role="button" tabIndex="0" aria-label="Drop CSV here">
-                  <p>Drag & drop your CSV here</p>
-                  <p className="muted" style={{fontSize:12}}>or</p>
-                  <button className="btn primary" onClick={()=>fileInput.current?.click()}>Choose a file</button>
-                  <input className="sr-only" type="file" accept=".csv" ref={fileInput} onChange={onFile} />
-                </div>
-                <p className="muted" style={{fontSize:12,marginTop:8}}>Tip: Export your student list as a CSV file from your SIS or gradebook.</p>
-                <div style={{textAlign:'right',marginTop:12}}>
-                  <button className="btn primary" onClick={()=>setStep(2)}>Looks good — Continue</button>
-                </div>
-              </div>
-              <div className="card">
-                <h3 style={{fontSize:16,fontWeight:600}}>What gets removed?</h3>
-                <ul>
-                  <li>Names, emails, phone numbers, addresses</li>
-                  <li>ID columns (Student ID, UID, local ID)</li>
-                  <li>Birth dates and other direct identifiers</li>
-                </ul>
-                <h3 style={{fontSize:16,fontWeight:600, marginTop:12}}>What stays (generalized)?</h3>
-                <ul>
-                  <li>Grade bands (K–2, 3–5, 6–8, 9–12)</li>
-                  <li>Gender, race/ethnicity buckets</li>
-                  <li>Program flags (ELL, IEP, FRL) as Yes/No</li>
-                </ul>
-              </div>
-            </div>
-          )}
-
-          {step===2 && (
-            <div className="grid two-1-2" style={{marginTop:16}}>
-              <div className="card">
-                <h2 style={{fontSize:18,fontWeight:600}}>Step 2 — Review columns</h2>
-                <p className="muted">Toggle which columns are PII vs QI.</p>
-                <div style={{marginTop:10, display:'flex', flexWrap:'wrap', gap:8}}>
-                  {headerChips.map(c=> (
-                    <div key={c.name} className="pill">
-                      <span style={{fontFamily:'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace'}}>{c.name}</span>
-                      <button className={'chip pii ' + ((piiCols.has(c.name)||PII_HEADER_PATTERNS.some(re=>re.test(String(c.name))))?'on':'off')} onClick={()=>toggleSet(setPiiCols, c.name)}>PII</button>
-                      <button className={'chip qi ' + (qiCols.has(c.name)?'on':'off')} onClick={()=>toggleSet(setQiCols, c.name)}>QI</button>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="table" style={{marginTop:12}}>
-                  <table>
-                    <thead><tr>{headers.map(h=> <th key={h} style={{color: piiCols.has(h)?'#991b1b': qiCols.has(h)?'#1d4ed8':'#374151'}}>{h}</th>)}</tr></thead>
-                    <tbody>
-                      {previewRows.map((r,idx)=> (
-                        <tr key={idx} style={{background: idx%2? '#fafafa':'#fff'}}>
-                          {headers.map(h=> <td key={h}>{String(r[h]??'')}</td>)}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                <div style={{marginTop:12, display:'flex', gap:8}}>
-                  <button className="btn ghost" onClick={()=>setStep(1)}>Back</button>
-                  <button className="btn primary" onClick={()=>setStep(3)}>Continue</button>
-                </div>
-              </div>
-              <div className="card">
-                <h3 style={{fontSize:16,fontWeight:600}}>Glossary</h3>
-                <p><b>PII</b> = personal info (removed).</p>
-                <p><b>QI</b> = demographic/group columns (kept, generalized).</p>
-              </div>
-            </div>
-          )}
-
-          {step===3 && (
-            <div className="grid two-1-2" style={{marginTop:16}}>
-              <div className="card">
-                <h2 style={{fontSize:18,fontWeight:600}}>Step 3 — Privacy settings</h2>
-                <div className="grid two" style={{marginTop:8}}>
-                  <div className="card" style={{padding:12}}>
-                    <h4 style={{fontSize:14,fontWeight:600}}>Choose a preset</h4>
-                    <div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:8}}>
-                      {['FERPA-Strict','Balanced','Exploratory'].map(key=> (
-                        <button key={key} className={'btn ' + (preset===key?'primary':'')} style={{border:'1px solid var(--border)'}} onClick={()=>setPreset(key)}>{key}</button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="card" style={{padding:12}}>
-                    <h4 style={{fontSize:14,fontWeight:600}}>Advanced (optional)</h4>
-                    <label style={{display:'block',fontSize:12,marginTop:8}}>k threshold</label>
-                    <input type="number" min="2" max="20" value={k} onChange={(e)=>setK(parseInt(e.target.value||'5',10))} style={{width:'100%',padding:8,border:'1px solid var(--border)',borderRadius:8}} />
-                    <label style={{display:'block',fontSize:12,marginTop:8}}>Suppression mode</label>
-                    <select value={suppressMode} onChange={(e)=>setSuppressMode(e.target.value)} style={{width:'100%',padding:8,border:'1px solid var(--border)',borderRadius:8}}>
-                      <option value="blank">Blank non‑QI cells for small‑N rows</option>
-                      <option value="drop">Drop small‑N rows</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="card" style={{padding:12, marginTop:8}}>
-                  <h4 style={{fontSize:14,fontWeight:600}}>Checklist</h4>
-                  <ul>
-                    <li>Small groups (N &lt; k) won’t reveal students.</li>
-                    <li>Names/emails/phones are removed entirely.</li>
-                    <li>Grades and race are grouped to protect privacy.</li>
-                  </ul>
-                </div>
-                <div style={{marginTop:12, display:'flex', gap:8}}>
-                  <button className="btn ghost" onClick={()=>setStep(2)}>Back</button>
-                  <button className="btn primary" onClick={()=>setStep(4)}>Continue</button>
-                </div>
-              </div>
-              <div className="card">
-                <h3 style={{fontSize:16,fontWeight:600}}>Reminder</h3>
-                <p>Even after de‑identification, don’t publicly share tiny groups. Use <b>FERPA‑Strict</b> for files leaving your team.</p>
-              </div>
-            </div>
-          )}
-
-          {step===4 && (
-            <div className="grid two-1-2" style={{marginTop:16}}>
-              <div className="card">
-                <h2 style={{fontSize:18,fontWeight:600}}>Step 4 — Download</h2>
-                <p className="muted">You’ll get a sanitized CSV plus a short JSON report of changes.</p>
-                <div style={{marginTop:12, display:'flex', gap:8}}>
-                  <button className="btn primary" onClick={handleDownload}>Download sanitized CSV + report</button>
-                  <button className="btn ghost" onClick={()=>setStep(3)}>Back</button>
-                </div>
-                <p className="muted" style={{fontSize:12,marginTop:8}}>Tip: Keep the report with your files so others understand the settings used (k, suppressed groups, etc.).</p>
-              </div>
-              <div className="card">
-                <h3 style={{fontSize:16,fontWeight:600}}>What’s next?</h3>
-                <ul>
-                  <li>Load the sanitized CSV into your dashboard or narrative tool.</li>
-                  <li>Share only aggregates that meet the small‑N threshold.</li>
-                  <li>Store your salt securely if you used pseudonyms.</li>
-                </ul>
-              </div>
-            </div>
-          )}
-
-          <div className="card" style={{marginTop:16}}>
-            <h3 style={{fontSize:16,fontWeight:600}}>Status</h3>
-            <p className="muted" style={{whiteSpace:'pre-wrap'}}>{status || (step===1?'No file loaded yet.':'Follow the steps above.')}</p>
-          </div>
+    <div class="row" style="align-items:flex-start">
+      <div style="min-width:180px;font-weight:600;margin-top:6px">Remove additional columns:</div>
+      <div class="cols" id="colSelect">Load a CSV to list headers…</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="row" style="gap:6px">
+          <button id="selAll" class="ghost" disabled>Select all</button>
+          <button id="selNone" class="ghost" disabled>Select none</button>
+          <button id="selPII" class="ghost" disabled>Select PII</button>
+          <button id="selNonPII" class="ghost" disabled>Select non‑PII</button>
         </div>
-      );
+        <input id="searchCols" class="search" type="text" placeholder="Filter columns… (live search)" disabled />
+      </div>
+    </div>
+
+    <div class="row">
+      <button id="previewBtn" class="ghost" disabled>Preview (first 5 rows)</button>
+      <button id="exportBtn" class="primary" disabled>Export Clean CSV</button>
+    </div>
+  </div>
+
+  <div id="notes" class="muted"></div>
+
+  <div class="grid">
+    <div class="card">
+      <h3 style="margin:0 0 8px">Before (first 5 rows)</h3>
+      <div id="beforeTbl"></div>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 8px">After (first 5 rows)</h3>
+      <div id="afterTbl"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== Theme Toggle ===== */
+(function initTheme(){
+  const root = document.documentElement;
+  const saved = localStorage.getItem('piipro_theme') || 'auto';
+  applyTheme(saved);
+  document.getElementById('btnLight').addEventListener('click', ()=>applyTheme('light'));
+  document.getElementById('btnAuto').addEventListener('click', ()=>applyTheme('auto'));
+  document.getElementById('btnDark').addEventListener('click', ()=>applyTheme('dark'));
+
+  function applyTheme(mode){
+    localStorage.setItem('piipro_theme', mode);
+    let m = mode;
+    if (mode === 'auto'){
+      m = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
+    root.setAttribute('data-theme', m === 'dark' ? 'dark' : 'light');
+    document.getElementById('btnLight').classList.toggle('active', mode==='light');
+    document.getElementById('btnAuto').classList.toggle('active', mode==='auto');
+    document.getElementById('btnDark').classList.toggle('active', mode==='dark');
+  }
+})();
 
-    // Tiny self-tests
-    (function selfTests(){
-      const csv1 = unparseSafe([{a:1,b:2},{a:3}]); if(!csv1.includes('a')||!csv1.includes('b')) console.error('unparseSafe fields fail');
-      const uidHeaders=['UID','uid number','local id']; const bad = uidHeaders.some(h=>!PII_HEADER_PATTERNS.some(re=>re.test(h))); if(bad) console.error('UID pattern miss');
-    })();
+/* ===== Config ===== */
+const PII_KEYWORDS = [
+  'name','first','last','full name','student name','parent','guardian',
+  'email','e-mail','phone','cell','mobile','address','street','city','state','zip','postal',
+  'ssn','social security','dob','date of birth','birthday','birthdate',
+  'student id','sid','id number','id #','sis id','upn','upi','uid','uic',
+  'homeroom','bus','locker','license','dl','drivers license'
+];
+const ALWAYS_DROP_HEADERS = [
+  'name', // force block any header containing "name"
+  'student id','sid','id number','uid','uic','unique identification code','state id','district id'
+];
+const HASH_COLUMNS = ['sis id'];
 
-    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+/* ===== State ===== */
+let RAW = { headers: [], rows: [] };
+let ANALYSIS = { piiHeaders: [], alwaysDropHeaders: [] };
+let OPTIONS = { mode: 'drop', hashIDs: false, addPseudonymsOnExport: false, selectedDropHeaders: [] };
+let ORIGINAL_BASENAME = ''; // <-- to build SANITIZED filename
 
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
+/* ===== CSV Helpers ===== */
+function parseCSV(text){
+  const rows=[]; let i=0, cur='', row=[], inQ=false;
+  while(i<text.length){
+    const ch=text[i];
+    if(inQ){
+      if(ch==='"'){ if(text[i+1]==='"'){cur+='"'; i++;} else inQ=false; }
+      else cur+=ch;
+    } else {
+      if(ch==='"') inQ=true;
+      else if(ch===','){ row.push(cur); cur=''; }
+      else if(ch==='\n'){ row.push(cur); rows.push(row); cur=''; row=[]; }
+      else if(ch==='\r'){}
+      else cur+=ch;
     }
-  </script>
+    i++;
+  }
+  row.push(cur); rows.push(row);
+  if(rows.length && rows[rows.length-1].length===1 && rows[rows.length-1][0]==='') rows.pop();
+  return rows;
+}
+function toCSV(rows){
+  const esc=s=>{ s=s==null?'':String(s); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; };
+  return rows.map(r=>r.map(esc).join(',')).join('\n');
+}
+
+/* ===== Crypto & Pseudonyms ===== */
+async function sha256(str){
+  const buf=new TextEncoder().encode(str==null?'':String(str));
+  const hash=await crypto.subtle.digest('SHA-256',buf);
+  return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function makePseudonyms(n){
+  const ADJ=['Swift','Lucky','Solar','Pixel','Crimson','Mellow','Turbo','Cosmic','Neon','Brave','Clever','Frosty','Sunny','Midnight','Copper','Indigo','Pepper','Atomic','Rusty','Maple','Silver','Golden','Jazzy','Rocket','Sparky','Thunder','Breezy','Echo','Nova','Blizzard'];
+  const NOUN=['Otter','Falcon','Badger','Lynx','Raven','Turtle','Coyote','Panda','Fox','Hawk','Wolf','Koala','Dolphin','Moose','Wolverine','Eagle','Salmon','Bison','Heron','Cedar','Spruce','Birch','Meteor','Comet','Quartz','Ember','Pebble','Harbor','Voyager','Beacon'];
+  const out=[]; for(let i=0;i<n;i++) out.push(`${ADJ[i%ADJ.length]} ${NOUN[i%NOUN.length]} #${i+1}`); return out;
+}
+
+/* ===== UI Helpers ===== */
+const $=id=>document.getElementById(id);
+function setStatus(html){ $('status').innerHTML=html; }
+function setSteps(idx){
+  document.querySelectorAll('.steps .step').forEach((s,i)=>s.classList.toggle('active',i<=idx));
+  $('bar').style.width = (idx===0?33:idx===1?66:100)+'%';
+}
+function renderTable(headers,rows,elId){
+  const el=$(elId);
+  if(!headers.length){ el.innerHTML='<div class="muted">No data</div>'; return; }
+  const thead=`<thead><tr>${headers.map(h=>`<th title="${h}">${h}</th>`).join('')}</tr></thead>`;
+  const body=rows.slice(0,5).map(r=>`<tr>${headers.map((_,i)=>`<td title="${r[i]??''}">${r[i]??''}</td>`).join('')}</tr>`).join('');
+  el.innerHTML=`<table>${thead}<tbody>${body}</tbody></table>`;
+}
+function analyzeHeaders(headers){
+  const lower=headers.map(h=>String(h||'').trim().toLowerCase());
+  const pii=[], always=[];
+  lower.forEach((h,i)=>{
+    if(PII_KEYWORDS.some(k=>h.includes(k))) pii.push(headers[i]);
+    if(ALWAYS_DROP_HEADERS.some(k=>h.includes(k))) always.push(headers[i]);
+  });
+  return {piiHeaders:pii, alwaysDropHeaders:always};
+}
+function hydrateColumnPicker(headers,analysis){
+  const box=$('colSelect'); box.innerHTML='';
+  headers.forEach(h=>{
+    const row=document.createElement('label'); row.className='col-row';
+    const cb=document.createElement('input'); cb.type='checkbox'; cb.value=h; cb.name='userDrop';
+    const name=document.createElement('span'); name.className='col-name'; name.textContent=h||'(blank)';
+    const pills=document.createElement('span');
+    if(analysis.alwaysDropHeaders.includes(h)){
+      cb.disabled=true; cb.checked=true;
+      const b=document.createElement('span'); b.className='badge always'; b.textContent='always-drop'; pills.appendChild(b);
+    } else if (analysis.piiHeaders.includes(h)){
+      const b=document.createElement('span'); b.className='badge pii'; b.textContent='PII'; pills.appendChild(b);
+    }
+    row.appendChild(cb); row.appendChild(name); row.appendChild(pills); box.appendChild(row);
+  });
+}
+function collectUserSelected(){
+  return [...document.querySelectorAll('input[name="userDrop"]:checked')].filter(cb=>!cb.disabled).map(cb=>cb.value);
+}
+function filterColumns(){
+  const q=($('searchCols').value||'').trim().toLowerCase();
+  document.querySelectorAll('#colSelect .col-row').forEach(row=>{
+    const name=row.querySelector('.col-name')?.textContent?.toLowerCase()||'';
+    row.style.display=name.includes(q)?'':'none';
+  });
+}
+
+/* ===== Transform ===== */
+async function transform(headers,rows,opts,analysis){
+  const lower=headers.map(h=>String(h||'').trim().toLowerCase());
+  const piiIdx=new Set(); (analysis.piiHeaders||[]).forEach(h=>{const i=headers.indexOf(h); if(i>=0)piiIdx.add(i);});
+  const alwaysIdx=new Set(); (analysis.alwaysDropHeaders||[]).forEach(h=>{const i=headers.indexOf(h); if(i>=0)alwaysIdx.add(i);});
+  const userIdx=new Set(); (opts.selectedDropHeaders||[]).forEach(h=>{const i=headers.indexOf(h); if(i>=0)userIdx.add(i);});
+  const hashIdx=new Set(); if(opts.hashIDs) lower.forEach((h,i)=>{ if(HASH_COLUMNS.some(k=>h.includes(k))) hashIdx.add(i); });
+  const keep=[]; headers.forEach((_,i)=>{
+    if(alwaysIdx.has(i)) return;
+    if(userIdx.has(i)) return;
+    if(opts.mode==='drop' && piiIdx.has(i) && !hashIdx.has(i)) return;
+    keep.push(i);
+  });
+  const outHeaders=keep.map(i=>headers[i]);
+  const outRows=[];
+  for(const row of rows){
+    const r=[...row];
+    for(let i=0;i<r.length;i++){
+      if(alwaysIdx.has(i)||userIdx.has(i)) continue;
+      const isPII=piiIdx.has(i), isHash=hashIdx.has(i);
+      if(isHash && r[i]!=null && r[i]!=='') r[i]=await sha256(String(r[i]));
+      else if(isPII && opts.mode==='mask' && r[i]!=null && r[i]!=='') r[i]='***';
+    }
+    outRows.push(keep.map(i=>r[i]));
+  }
+  return {headers:outHeaders, rows:outRows};
+}
+
+/* ===== Export ===== */
+function download(filename,text){
+  const blob=new Blob([text],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+
+/* ===== Wire-up ===== */
+document.getElementById('bar').style.width='33%';
+document.getElementById('loadBtn').addEventListener('click', async ()=>{
+  const f=$('file').files[0];
+  if(!f){ setStatus('<span class="bad">Choose a CSV file.</span>'); return; }
+  setStatus('Reading CSV…'); setSteps(0);
+  ORIGINAL_BASENAME = (f.name || 'data').replace(/\.[^/.]+$/, '');
+  const text=await f.text();
+  const rows=parseCSV(text);
+  if(!rows.length){ setStatus('<span class="bad">No rows found.</span>'); return; }
+  RAW.headers=rows[0]; RAW.rows=rows.slice(1);
+  ANALYSIS=analyzeHeaders(RAW.headers);
+
+  $('previewBtn').disabled=false;
+  $('exportBtn').disabled=false;
+  $('pseudonyms').disabled=false;
+  $('selAll').disabled=$('selNone').disabled=$('selPII').disabled=$('selNonPII').disabled=false;
+  $('searchCols').disabled=false;
+
+  hydrateColumnPicker(RAW.headers, ANALYSIS);
+  $('notes').innerHTML = `${ANALYSIS.piiHeaders.length ? 'PII headers: ' + ANALYSIS.piiHeaders.map(h=>'<span class="chip">'+h+'</span>').join(' ') : 'No PII headers detected.'}
+    ${ANALYSIS.alwaysDropHeaders.length ? '<br><b>Force-removed:</b> ' + ANALYSIS.alwaysDropHeaders.map(h=>'<span class="chip">'+h+'</span>').join(' ') : ''}`;
+
+  renderTable(RAW.headers, RAW.rows, 'beforeTbl');
+  setStatus('<span class="ok">Loaded.</span> Adjust options and Preview.');
+});
+
+document.getElementById('previewBtn').addEventListener('click', async ()=>{
+  OPTIONS.mode=document.querySelector('input[name="mode"]:checked').value;
+  OPTIONS.hashIDs=$('hashIDs').checked;
+  OPTIONS.addPseudonymsOnExport=$('pseudonyms').checked;
+  OPTIONS.selectedDropHeaders=collectUserSelected();
+
+  setStatus('Transforming for preview…'); setSteps(1);
+  const out=await transform(RAW.headers, RAW.rows, OPTIONS, ANALYSIS);
+  renderTable(out.headers, out.rows, 'afterTbl');
+  setStatus('<span class="ok">Preview ready.</span>');
+});
+
+document.getElementById('exportBtn').addEventListener('click', async ()=>{
+  OPTIONS.mode=document.querySelector('input[name="mode"]:checked').value;
+  OPTIONS.hashIDs=$('hashIDs').checked;
+  OPTIONS.addPseudonymsOnExport=$('pseudonyms').checked;
+  OPTIONS.selectedDropHeaders=collectUserSelected();
+
+  setStatus('Building export…'); setSteps(2);
+  const out=await transform(RAW.headers, RAW.rows, OPTIONS, ANALYSIS);
+  let headers=[...out.headers];
+  let rows=out.rows.map(r=>[...r]);
+  if(OPTIONS.addPseudonymsOnExport){
+    const pseu=makePseudonyms(rows.length);
+    headers=['Pseudonym', ...headers];
+    rows=rows.map((r,i)=>[pseu[i], ...r]);
+  }
+  if(!headers.length){
+    setStatus('<span class="bad">No columns remain after cleaning. Uncheck some removals or switch to “Mask values”.</span>');
+    return;
+  }
+  const csv=toCSV([headers, ...rows]);
+  const filename = `SANITIZED_${ORIGINAL_BASENAME}_SANITIZED.csv`;
+  download(filename, csv);
+  setStatus('<span class="ok">Exported clean CSV as <b>'+filename+'</b>.</span>');
+});
+
+/* Column quick-selects + filter */
+document.getElementById('selAll').addEventListener('click', ()=>{
+  document.querySelectorAll('#colSelect input[type="checkbox"]').forEach(cb=>{ if(!cb.disabled) cb.checked=true; });
+});
+document.getElementById('selNone').addEventListener('click', ()=>{
+  document.querySelectorAll('#colSelect input[type="checkbox"]').forEach(cb=>{ if(!cb.disabled) cb.checked=false; });
+});
+document.getElementById('selPII').addEventListener('click', ()=>{
+  document.querySelectorAll('#colSelect .col-row').forEach(row=>{
+    const name=row.querySelector('.col-name')?.textContent||'';
+    const isPII=ANALYSIS.piiHeaders.includes(name);
+    const cb=row.querySelector('input[type="checkbox"]');
+    if(cb && !cb.disabled) cb.checked=!!isPII;
+  });
+});
+document.getElementById('selNonPII').addEventListener('click', ()=>{
+  document.querySelectorAll('#colSelect .col-row').forEach(row=>{
+    const name=row.querySelector('.col-name')?.textContent||'';
+    const isPII=ANALYSIS.piiHeaders.includes(name);
+    const cb=row.querySelector('input[type="checkbox"]');
+    if(cb && !cb.disabled) cb.checked=!isPII;
+  });
+});
+document.getElementById('searchCols').addEventListener('input', filterColumns);
+</script>
 </body>
 </html>
