@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>PII-Pro — Educator Wizard (SANITIZED naming)</title>
+<title>Student Data Helper — Make Your Data Safe to Share</title>
 <style>
   :root{
     --brand:#0b5fff;
@@ -12,6 +12,7 @@
     --muted:#6b7280;
     --ok:#16a34a;
     --bad:#ef4444;
+    --warning:#f59e0b;
     --ink:#0f172a;
     --bg:#f8fafc;
     --card:#ffffff;
@@ -27,6 +28,7 @@
     --muted:#9aa5b1;
     --ok:#22c55e;
     --bad:#f87171;
+    --warning:#fbbf24;
     --ink:#e5e7eb;
     --bg:#0f172a;
     --card:#121a2a;
@@ -37,61 +39,76 @@
   }
   *{box-sizing:border-box}
   html,body{height:100%}
-  body{background:var(--bg);color:var(--ink);font:14px system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;margin:0}
+  body{background:var(--bg);color:var(--ink);font:15px system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;margin:0;line-height:1.6}
   a{color:var(--brand);text-decoration:none}
   .shell{max-width:1080px;margin:28px auto 64px;padding:0 20px}
   header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:14px}
   .header-left{display:flex;align-items:center;gap:12px}
   .logo{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;color:#fff;font-weight:800;background:linear-gradient(135deg,var(--brand),var(--brand-2))}
   h1{font-size:20px;margin:0}
-  .subtitle{color:var(--muted);font-size:12.5px;margin-top:2px}
+  .subtitle{color:var(--muted);font-size:13px;margin-top:2px}
   .toggle{display:flex;align-items:center;gap:8px}
   .toggle button{padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:transparent;color:var(--ink);cursor:pointer}
   .toggle button.active{background:var(--brand);border-color:var(--brand);color:#fff}
-  .muted{color:var(--muted);font-size:12px}
+  .muted{color:var(--muted);font-size:13px}
+  .warning{color:var(--warning)}
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
-  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin:12px 0}
-  .callout{border:1px solid var(--callout-border);background:var(--callout-bg);border-radius:10px;padding:10px}
-  label{font-size:14px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin:12px 0}
+  .card.drop-zone{border:2px dashed var(--border);transition:all .2s}
+  .card.drop-zone.drag-over{border-color:var(--brand);background:rgba(11,95,255,.05)}
+  .callout{border:1px solid var(--callout-border);background:var(--callout-bg);border-radius:10px;padding:12px;line-height:1.5}
+  label{font-size:14px;cursor:pointer}
   input[type="file"],select,button{font:inherit;color:inherit}
-  button{padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:transparent;cursor:pointer}
-  button.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+  button{padding:8px 14px;border:1px solid var(--border);border-radius:10px;background:transparent;cursor:pointer;transition:all .2s;font-size:14px}
+  button.primary{background:var(--brand);color:#fff;border-color:var(--brand);font-weight:600}
+  button.primary:hover:not(:disabled){background:var(--brand-2);transform:translateY(-1px)}
   button.ghost{background:transparent}
+  button.ghost:hover:not(:disabled){background:var(--chip)}
+  button.danger{border-color:var(--bad);color:var(--bad)}
   button:disabled{opacity:.55;cursor:not-allowed}
-  .cols{max-height:220px;overflow:auto;border:1px solid var(--border);border-radius:8px;padding:6px;min-width:260px;background:transparent}
-  .cols label{display:flex;gap:8px;padding:3px 2px}
-  .badge{font-size:10px;border:1px solid var(--border);border-radius:6px;padding:0 6px}
+  .cols{max-height:220px;overflow:auto;border:1px solid var(--border);border-radius:8px;padding:8px;min-width:260px;background:transparent}
+  .cols label{display:flex;gap:8px;padding:4px 2px}
+  .badge{font-size:10px;border:1px solid var(--border);border-radius:6px;padding:0 6px;font-weight:600}
   .badge.pii{background:rgba(239,68,68,.12);border-color:#f0b5b5;color:#fca5a5}
   [data-theme="dark"] .badge.pii{border-color:#7f1d1d;color:#fecaca;background:rgba(239,68,68,.12)}
   .badge.always{background:rgba(59,130,246,.12);border-color:#93c5fd;color:#93c5fd}
   [data-theme="dark"] .badge.always{border-color:#1d4ed8;color:#bfdbfe}
-  .chip{display:inline-block;border:1px solid var(--border);border-radius:999px;padding:2px 8px;margin:2px 6px 0 0;font-size:11px;background:var(--chip)}
-  table{width:100%;border-collapse:collapse;font-size:12.5px}
-  th,td{border-bottom:1px solid var(--table-border);padding:7px;text-align:left;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .chip{display:inline-block;border:1px solid var(--border);border-radius:999px;padding:3px 10px;margin:2px 6px 0 0;font-size:11px;background:var(--chip)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{border-bottom:1px solid var(--table-border);padding:8px;text-align:left;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  th{font-weight:600}
   .grid{display:grid;gap:10px;grid-template-columns:1fr}
   @media(min-width:900px){.grid{grid-template-columns:1fr 1fr}}
   .ok{color:var(--ok)}.bad{color:var(--bad)}
-  .search{border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:220px;background:transparent;color:inherit}
+  .search{border:1px solid var(--border);border-radius:8px;padding:7px 10px;min-width:220px;background:transparent;color:inherit}
   .steps{display:flex;gap:10px;align-items:center;margin:14px 0 6px}
-  .step{display:flex;align-items:center;gap:8px;color:var(--muted);font-weight:600}
-  .step .dot{width:22px;height:22px;border-radius:999px;background:rgba(148,163,184,.3);color:var(--ink);display:grid;place-items:center;font-size:12px}
+  .step{display:flex;align-items:center;gap:8px;color:var(--muted);font-weight:600;font-size:14px}
+  .step .dot{width:24px;height:24px;border-radius:999px;background:rgba(148,163,184,.3);color:var(--ink);display:grid;place-items:center;font-size:12px}
   .step.active{color:var(--brand)}
   .step.active .dot{background:var(--brand);color:#fff}
   .progress{height:8px;background:rgba(148,163,184,.3);border-radius:999px;overflow:hidden}
-  .bar{height:8px;background:linear-gradient(90deg,var(--brand) 0%,var(--brand-2) 100%);border-radius:999px;width:33%}
-  .instructions h3{margin:0 0 6px}
-  .instructions ol{margin:6px 0 0 18px}
-  .instructions li{margin:6px 0}
+  .bar{height:8px;background:linear-gradient(90deg,var(--brand) 0%,var(--brand-2) 100%);border-radius:999px;width:33%;transition:width .3s}
+  .instructions h3{margin:0 0 8px;font-size:18px}
+  .instructions ol{margin:8px 0 0 20px}
+  .instructions li{margin:8px 0}
+  .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--brand);border-radius:50%;animation:spin .6s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:12px 0}
+  .stat-card{background:var(--chip);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center}
+  .stat-value{font-size:22px;font-weight:700;color:var(--brand)}
+  .stat-label{font-size:11px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+  .version{position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--muted);opacity:.6}
+  .friendly-note{background:rgba(11,95,255,.05);border-left:3px solid var(--brand);padding:10px 12px;margin:10px 0;border-radius:6px;font-size:13.5px}
 </style>
 </head>
 <body>
 <div class="shell">
   <header>
     <div class="header-left">
-      <div class="logo">P</div>
+      <div class="logo">📚</div>
       <div>
-        <h1>PII-Pro — Educator Wizard</h1>
-        <div class="subtitle">Load CSV → Review → Export — pseudonyms can be toggled after upload</div>
+        <h1>Student Data Helper</h1>
+        <div class="subtitle">Quickly remove student names and private info from your spreadsheets</div>
       </div>
     </div>
     <div class="toggle" role="group" aria-label="Theme toggle">
@@ -102,91 +119,156 @@
   </header>
 
   <div class="steps">
-    <div class="step active"><div class="dot">1</div>Upload</div>
-    <div class="step"><div class="dot">2</div>Review</div>
-    <div class="step"><div class="dot">3</div>Export</div>
+    <div class="step active"><div class="dot">1</div>Upload Your File</div>
+    <div class="step"><div class="dot">2</div>Check & Preview</div>
+    <div class="step"><div class="dot">3</div>Download Clean File</div>
   </div>
   <div class="progress"><div class="bar" id="bar"></div></div>
 
   <div class="card instructions" aria-labelledby="instr-title">
-    <h3 id="instr-title">📘 Instructions</h3>
+    <h3 id="instr-title">👋 Welcome! Here's how this works:</h3>
     <ol>
-      <li><b>Upload a CSV</b>: Choose your file, then click <b>Load CSV</b>.</li>
-      <li><b>Review options</b>:
+      <li><b>Upload your spreadsheet</b>: Drag and drop your CSV file here, or click "Choose File" and then "Load My File".</li>
+      <li><b>Choose what to do with private info</b>:
         <ul>
-          <li><b>Drop</b> or <b>Mask</b> PII.</li>
-          <li>Optionally <b>Hash ID-like</b> columns.</li>
-          <li><b>Pseudonyms</b> can be toggled after upload (added to the exported CSV only).</li>
-          <li>Select any <b>extra columns</b> you want to remove.</li>
+          <li><b>Remove columns</b> — Student names, IDs, and contact info? Gone!</li>
+          <li><b>Hide the info</b> — Keep the columns but replace sensitive stuff with "***"</li>
+          <li><b>Fun pseudonyms</b> — Want to call students "Sunny Falcon #1" and "Pixel Otter #2"? Check that box! (Makes it easier to discuss students without using real names)</li>
+          <li><b>Pick extra columns to remove</b> — See something you don't need? Just check the box.</li>
         </ul>
       </li>
-      <li><b>Preview</b>: Compare <i>Before</i> vs <i>After</i> (first 5 rows).</li>
-      <li><b>Export</b>: Download the cleaned file as <code>SANITIZED_&lt;original&gt;_SANITIZED.csv</code>.</li>
-      <li><b>Themes</b>: Use <b>Light / Auto / Dark</b> in the top-right to switch appearance; your choice is saved.</li>
+      <li><b>Take a peek</b>: Click "Preview" to see before and after — first 5 rows so you can double-check everything looks good!</li>
+      <li><b>Save your clean file</b>: Click "Download Clean File" and you're done! You'll get a safe-to-share version plus a log file showing what changed.</li>
     </ol>
-    <p class="muted" style="margin-top:8px"><b>Reminder:</b> You are responsible for verifying PII handling (FERPA, district policies).</p>
+    <div class="friendly-note">
+      💡 <b>First time here?</b> Don't worry! This tool is designed to be simple. Just load your file and it'll automatically spot things like student names, emails, and phone numbers. You can always preview before downloading anything.
+    </div>
+    <div class="callout" style="margin-top:12px">
+      <b>🔒 Important Note About Privacy:</b> This tool helps protect student privacy, but you're still responsible for making sure your cleaned data follows FERPA and your district's policies. The tool removes obvious private info, but please review the results before sharing. If you're not sure, check with your data privacy coordinator!
+    </div>
   </div>
 
-  <div class="card">
+  <div class="card drop-zone" id="dropZone">
     <div class="row">
       <input type="file" id="file" accept=".csv,text/csv" />
-      <button id="loadBtn" class="primary">Load CSV</button>
+      <button id="loadBtn" class="primary">Load My File</button>
+      <button id="resetBtn" class="danger ghost" style="display:none">Start Over</button>
       <span id="status" class="muted"></span>
     </div>
 
-    <div class="row">
-      <label><input type="radio" name="mode" value="drop" checked /> Drop PII columns</label>
-      <label><input type="radio" name="mode" value="mask" /> Mask values (keep columns)</label>
-      <label><input type="checkbox" id="hashIDs" /> Hash ID-like columns</label>
-      <label title="Added only to the exported CSV"><input type="checkbox" id="pseudonyms" disabled /> Add pseudonyms on export</label>
-    </div>
-
-    <div class="row" style="align-items:flex-start">
-      <div style="min-width:180px;font-weight:600;margin-top:6px">Remove additional columns:</div>
-      <div class="cols" id="colSelect">Load a CSV to list headers…</div>
-      <div style="display:flex;flex-direction:column;gap:6px">
-        <div class="row" style="gap:6px">
-          <button id="selAll" class="ghost" disabled>Select all</button>
-          <button id="selNone" class="ghost" disabled>Select none</button>
-          <button id="selPII" class="ghost" disabled>Select PII</button>
-          <button id="selNonPII" class="ghost" disabled>Select non‑PII</button>
+    <div id="statsContainer" style="display:none">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="statRows">0</div>
+          <div class="stat-label">Students/Rows</div>
         </div>
-        <input id="searchCols" class="search" type="text" placeholder="Filter columns… (live search)" disabled />
+        <div class="stat-card">
+          <div class="stat-value" id="statCols">0</div>
+          <div class="stat-label">Info Columns</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statSize">0 KB</div>
+          <div class="stat-label">File Size</div>
+        </div>
       </div>
     </div>
 
     <div class="row">
-      <button id="previewBtn" class="ghost" disabled>Preview (first 5 rows)</button>
-      <button id="exportBtn" class="primary" disabled>Export Clean CSV</button>
+      <label><input type="radio" name="mode" value="drop" checked /> <b>Remove</b> private info columns (recommended)</label>
+      <label><input type="radio" name="mode" value="mask" /> <b>Hide</b> info with *** (keeps columns)</label>
+    </div>
+    
+    <div class="row">
+      <label title="Converts student IDs to scrambled codes that can't be traced back"><input type="checkbox" id="hashIDs" /> Scramble student IDs (makes them unreadable)</label>
+      <label title="Gives each student a fun, random nickname like 'Swift Falcon #1'"><input type="checkbox" id="pseudonyms" disabled /> Add fun pseudonyms (like "Lucky Badger #1")</label>
+    </div>
+
+    <div class="row" style="align-items:flex-start">
+      <div style="min-width:180px;font-weight:600;margin-top:8px">Pick other columns to remove:</div>
+      <div class="cols" id="colSelect">Load a file first to see all your columns here…</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div class="row" style="gap:6px;margin:0">
+          <button id="selAll" class="ghost" disabled>Check all</button>
+          <button id="selNone" class="ghost" disabled>Uncheck all</button>
+        </div>
+        <div class="row" style="gap:6px;margin:0">
+          <button id="selPII" class="ghost" disabled>Check private info</button>
+          <button id="selNonPII" class="ghost" disabled>Check other columns</button>
+        </div>
+        <input id="searchCols" class="search" type="text" placeholder="Search columns…" disabled />
+      </div>
+    </div>
+
+    <div class="row">
+      <button id="previewBtn" class="ghost" disabled>👀 Preview Changes (First 5 Rows)</button>
+      <button id="exportBtn" class="primary" disabled>⬇️ Download Clean File</button>
     </div>
   </div>
 
   <div id="notes" class="muted"></div>
+  <div id="exportSummary"></div>
 
   <div class="grid">
     <div class="card">
-      <h3 style="margin:0 0 8px">Before (first 5 rows)</h3>
-      <div id="beforeTbl"></div>
+      <h3 style="margin:0 0 10px">📋 Original Data (first 5 rows)</h3>
+      <div id="beforeTbl" class="muted">Your original data will appear here after you load a file</div>
     </div>
     <div class="card">
-      <h3 style="margin:0 0 8px">After (first 5 rows)</h3>
-      <div id="afterTbl"></div>
+      <h3 style="margin:0 0 10px">✨ Cleaned Data (first 5 rows)</h3>
+      <div id="afterTbl" class="muted">Click "Preview Changes" to see your cleaned data here</div>
     </div>
   </div>
 </div>
+<div class="version">v2.0 Teacher Friendly</div>
 
 <script>
+/* ===== Configuration ===== */
+const CONFIG = {
+  PREVIEW_ROWS: 5,
+  MAX_FILE_SIZE_MB: 50,
+  PII_KEYWORDS: [
+    'name','first','last','full name','student name','parent','guardian',
+    'email','e-mail','phone','cell','mobile','address','street','city','state','zip','postal',
+    'ssn','social security','dob','date of birth','birthday','birthdate',
+    'student id','sid','id number','id #','sis id','upn','upi','uid','uic',
+    'homeroom','bus','locker','license','dl','drivers license'
+  ],
+  ALWAYS_DROP_HEADERS: [
+    'name',
+    'student id','sid','id number','uid','uic','unique identification code','state id','district id'
+  ],
+  HASH_COLUMNS: ['sis id'],
+  ADJECTIVES: ['Swift','Lucky','Solar','Pixel','Crimson','Mellow','Turbo','Cosmic','Neon','Brave','Clever','Frosty','Sunny','Midnight','Copper','Indigo','Pepper','Atomic','Rusty','Maple','Silver','Golden','Jazzy','Rocket','Sparky','Thunder','Breezy','Echo','Nova','Blizzard','Lunar','Stellar','Phoenix','Dragon','Tiger','Emerald','Ruby','Sapphire','Crystal','Diamond','Pearl','Marble','Amber','Coral','Jade','Topaz','Violet','Azure','Onyx','Ivory','Bronze'],
+  NOUNS: ['Otter','Falcon','Badger','Lynx','Raven','Turtle','Coyote','Panda','Fox','Hawk','Wolf','Koala','Dolphin','Moose','Wolverine','Eagle','Salmon','Bison','Heron','Cedar','Spruce','Birch','Meteor','Comet','Quartz','Ember','Pebble','Harbor','Voyager','Beacon','Arrow','Canyon','River','Summit','Valley','Ridge','Trail','Peak','Mesa','Glacier','Brook','Delta','Dune','Forest','Grove','Haven','Isle','Meadow','Ocean','Prairie']
+};
+
+const STATUS_TYPE = {
+  ERROR: 'bad',
+  SUCCESS: 'ok',
+  WARNING: 'warning',
+  INFO: 'muted'
+};
+
+/* ===== State ===== */
+let RAW = { headers: [], rows: [] };
+let ANALYSIS = { piiHeaders: [], alwaysDropHeaders: [], duplicateHeaders: [] };
+let OPTIONS = { mode: 'drop', hashIDs: false, addPseudonymsOnExport: false, selectedDropHeaders: [] };
+let ORIGINAL_BASENAME = '';
+let FILE_SIZE = 0;
+let SESSION_SALT = crypto.randomUUID();
+let PROCESSING_LOG = {};
+
 /* ===== Theme Toggle ===== */
 (function initTheme(){
   const root = document.documentElement;
-  const saved = localStorage.getItem('piipro_theme') || 'auto';
+  const saved = localStorage.getItem('datahelper_theme') || 'auto';
   applyTheme(saved);
   document.getElementById('btnLight').addEventListener('click', ()=>applyTheme('light'));
   document.getElementById('btnAuto').addEventListener('click', ()=>applyTheme('auto'));
   document.getElementById('btnDark').addEventListener('click', ()=>applyTheme('dark'));
 
   function applyTheme(mode){
-    localStorage.setItem('piipro_theme', mode);
+    localStorage.setItem('datahelper_theme', mode);
     let m = mode;
     if (mode === 'auto'){
       m = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -198,25 +280,22 @@
   }
 })();
 
-/* ===== Config ===== */
-const PII_KEYWORDS = [
-  'name','first','last','full name','student name','parent','guardian',
-  'email','e-mail','phone','cell','mobile','address','street','city','state','zip','postal',
-  'ssn','social security','dob','date of birth','birthday','birthdate',
-  'student id','sid','id number','id #','sis id','upn','upi','uid','uic',
-  'homeroom','bus','locker','license','dl','drivers license'
-];
-const ALWAYS_DROP_HEADERS = [
-  'name', // force block any header containing "name"
-  'student id','sid','id number','uid','uic','unique identification code','state id','district id'
-];
-const HASH_COLUMNS = ['sis id'];
-
-/* ===== State ===== */
-let RAW = { headers: [], rows: [] };
-let ANALYSIS = { piiHeaders: [], alwaysDropHeaders: [] };
-let OPTIONS = { mode: 'drop', hashIDs: false, addPseudonymsOnExport: false, selectedDropHeaders: [] };
-let ORIGINAL_BASENAME = ''; // <-- to build SANITIZED filename
+/* ===== Load Saved Settings ===== */
+(function loadSettings(){
+  try {
+    const saved = localStorage.getItem('datahelper_settings');
+    if (saved) {
+      const settings = JSON.parse(saved);
+      if (settings.mode) {
+        const radio = document.querySelector(`input[name="mode"][value="${settings.mode}"]`);
+        if (radio) radio.checked = true;
+      }
+      if (settings.hashIDs !== undefined) document.getElementById('hashIDs').checked = settings.hashIDs;
+    }
+  } catch(e) {
+    console.warn('Could not load your saved preferences (no big deal!)');
+  }
+})();
 
 /* ===== CSV Helpers ===== */
 function parseCSV(text){
@@ -239,6 +318,7 @@ function parseCSV(text){
   if(rows.length && rows[rows.length-1].length===1 && rows[rows.length-1][0]==='') rows.pop();
   return rows;
 }
+
 function toCSV(rows){
   const esc=s=>{ s=s==null?'':String(s); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; };
   return rows.map(r=>r.map(esc).join(',')).join('\n');
@@ -246,58 +326,120 @@ function toCSV(rows){
 
 /* ===== Crypto & Pseudonyms ===== */
 async function sha256(str){
-  const buf=new TextEncoder().encode(str==null?'':String(str));
-  const hash=await crypto.subtle.digest('SHA-256',buf);
-  return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  try {
+    const buf=new TextEncoder().encode((str==null?'':String(str)) + SESSION_SALT);
+    const hash=await crypto.subtle.digest('SHA-256',buf);
+    return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  } catch(e) {
+    console.error('Oops, scrambling error:', e);
+    return '***ERROR***';
+  }
 }
+
+function shuffleArray(arr) {
+  const shuffled = [...arr];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
 function makePseudonyms(n){
-  const ADJ=['Swift','Lucky','Solar','Pixel','Crimson','Mellow','Turbo','Cosmic','Neon','Brave','Clever','Frosty','Sunny','Midnight','Copper','Indigo','Pepper','Atomic','Rusty','Maple','Silver','Golden','Jazzy','Rocket','Sparky','Thunder','Breezy','Echo','Nova','Blizzard'];
-  const NOUN=['Otter','Falcon','Badger','Lynx','Raven','Turtle','Coyote','Panda','Fox','Hawk','Wolf','Koala','Dolphin','Moose','Wolverine','Eagle','Salmon','Bison','Heron','Cedar','Spruce','Birch','Meteor','Comet','Quartz','Ember','Pebble','Harbor','Voyager','Beacon'];
-  const out=[]; for(let i=0;i<n;i++) out.push(`${ADJ[i%ADJ.length]} ${NOUN[i%NOUN.length]} #${i+1}`); return out;
+  const ADJ = CONFIG.ADJECTIVES;
+  const NOUN = CONFIG.NOUNS;
+  const pairs = ADJ.flatMap(a => NOUN.map(n => `${a} ${n}`));
+  const shuffled = shuffleArray(pairs);
+  const out = [];
+  for(let i=0; i<n; i++) {
+    out.push(shuffled[i % shuffled.length] + ` #${i+1}`);
+  }
+  return out;
 }
 
 /* ===== UI Helpers ===== */
 const $=id=>document.getElementById(id);
-function setStatus(html){ $('status').innerHTML=html; }
+
+function setStatus(html, type = STATUS_TYPE.INFO){
+  $('status').innerHTML = `<span class="${type}">${html}</span>`;
+}
+
+function setLoading(isLoading, message = 'Working on it…') {
+  if (isLoading) {
+    setStatus(`<span class="spinner"></span> ${message}`, STATUS_TYPE.INFO);
+  }
+}
+
 function setSteps(idx){
   document.querySelectorAll('.steps .step').forEach((s,i)=>s.classList.toggle('active',i<=idx));
   $('bar').style.width = (idx===0?33:idx===1?66:100)+'%';
 }
+
+function showStats(rows, cols, size) {
+  $('statRows').textContent = rows.toLocaleString();
+  $('statCols').textContent = cols.toLocaleString();
+  $('statSize').textContent = formatBytes(size);
+  $('statsContainer').style.display = 'block';
+}
+
+function formatBytes(bytes) {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
 function renderTable(headers,rows,elId){
   const el=$(elId);
-  if(!headers.length){ el.innerHTML='<div class="muted">No data</div>'; return; }
+  if(!headers.length){ 
+    el.innerHTML='<div class="muted">Nothing here yet — upload your file to get started!</div>'; 
+    return; 
+  }
   const thead=`<thead><tr>${headers.map(h=>`<th title="${h}">${h}</th>`).join('')}</tr></thead>`;
-  const body=rows.slice(0,5).map(r=>`<tr>${headers.map((_,i)=>`<td title="${r[i]??''}">${r[i]??''}</td>`).join('')}</tr>`).join('');
+  const body=rows.slice(0,CONFIG.PREVIEW_ROWS).map(r=>`<tr>${headers.map((_,i)=>`<td title="${r[i]??''}">${r[i]??''}</td>`).join('')}</tr>`).join('');
   el.innerHTML=`<table>${thead}<tbody>${body}</tbody></table>`;
 }
+
 function analyzeHeaders(headers){
   const lower=headers.map(h=>String(h||'').trim().toLowerCase());
-  const pii=[], always=[];
-  lower.forEach((h,i)=>{
-    if(PII_KEYWORDS.some(k=>h.includes(k))) pii.push(headers[i]);
-    if(ALWAYS_DROP_HEADERS.some(k=>h.includes(k))) always.push(headers[i]);
+  const pii=[], always=[], duplicates=[];
+  
+  const seen = new Set();
+  headers.forEach(h => {
+    if (seen.has(h) && !duplicates.includes(h)) duplicates.push(h);
+    seen.add(h);
   });
-  return {piiHeaders:pii, alwaysDropHeaders:always};
+  
+  lower.forEach((h,i)=>{
+    if(CONFIG.PII_KEYWORDS.some(k=>h.includes(k))) pii.push(headers[i]);
+    if(CONFIG.ALWAYS_DROP_HEADERS.some(k=>h.includes(k))) always.push(headers[i]);
+  });
+  
+  return {piiHeaders:pii, alwaysDropHeaders:always, duplicateHeaders:duplicates};
 }
+
 function hydrateColumnPicker(headers,analysis){
   const box=$('colSelect'); box.innerHTML='';
   headers.forEach(h=>{
     const row=document.createElement('label'); row.className='col-row';
     const cb=document.createElement('input'); cb.type='checkbox'; cb.value=h; cb.name='userDrop';
-    const name=document.createElement('span'); name.className='col-name'; name.textContent=h||'(blank)';
+    const name=document.createElement('span'); name.className='col-name'; name.textContent=h||'(blank column)';
     const pills=document.createElement('span');
     if(analysis.alwaysDropHeaders.includes(h)){
       cb.disabled=true; cb.checked=true;
-      const b=document.createElement('span'); b.className='badge always'; b.textContent='always-drop'; pills.appendChild(b);
+      const b=document.createElement('span'); b.className='badge always'; b.textContent='auto-removed'; pills.appendChild(b);
     } else if (analysis.piiHeaders.includes(h)){
-      const b=document.createElement('span'); b.className='badge pii'; b.textContent='PII'; pills.appendChild(b);
+      const b=document.createElement('span'); b.className='badge pii'; b.textContent='private info'; pills.appendChild(b);
     }
     row.appendChild(cb); row.appendChild(name); row.appendChild(pills); box.appendChild(row);
   });
 }
+
 function collectUserSelected(){
   return [...document.querySelectorAll('input[name="userDrop"]:checked')].filter(cb=>!cb.disabled).map(cb=>cb.value);
 }
+
 function filterColumns(){
   const q=($('searchCols').value||'').trim().toLowerCase();
   document.querySelectorAll('#colSelect .col-row').forEach(row=>{
@@ -306,31 +448,65 @@ function filterColumns(){
   });
 }
 
+function saveSettings() {
+  try {
+    const settings = {
+      mode: document.querySelector('input[name="mode"]:checked')?.value,
+      hashIDs: $('hashIDs').checked
+    };
+    localStorage.setItem('datahelper_settings', JSON.stringify(settings));
+  } catch(e) {
+    console.warn('Could not save your preferences (no worries!)');
+  }
+}
+
 /* ===== Transform ===== */
 async function transform(headers,rows,opts,analysis){
   const lower=headers.map(h=>String(h||'').trim().toLowerCase());
   const piiIdx=new Set(); (analysis.piiHeaders||[]).forEach(h=>{const i=headers.indexOf(h); if(i>=0)piiIdx.add(i);});
   const alwaysIdx=new Set(); (analysis.alwaysDropHeaders||[]).forEach(h=>{const i=headers.indexOf(h); if(i>=0)alwaysIdx.add(i);});
   const userIdx=new Set(); (opts.selectedDropHeaders||[]).forEach(h=>{const i=headers.indexOf(h); if(i>=0)userIdx.add(i);});
-  const hashIdx=new Set(); if(opts.hashIDs) lower.forEach((h,i)=>{ if(HASH_COLUMNS.some(k=>h.includes(k))) hashIdx.add(i); });
-  const keep=[]; headers.forEach((_,i)=>{
+  const hashIdx=new Set(); 
+  if(opts.hashIDs) {
+    lower.forEach((h,i)=>{ 
+      if(CONFIG.HASH_COLUMNS.some(k=>h.includes(k))) hashIdx.add(i); 
+    });
+  }
+  
+  const keep=[]; 
+  headers.forEach((_,i)=>{
     if(alwaysIdx.has(i)) return;
     if(userIdx.has(i)) return;
     if(opts.mode==='drop' && piiIdx.has(i) && !hashIdx.has(i)) return;
     keep.push(i);
   });
+  
   const outHeaders=keep.map(i=>headers[i]);
   const outRows=[];
+  
   for(const row of rows){
     const r=[...row];
+    
+    const hashPromises = [];
     for(let i=0;i<r.length;i++){
       if(alwaysIdx.has(i)||userIdx.has(i)) continue;
       const isPII=piiIdx.has(i), isHash=hashIdx.has(i);
-      if(isHash && r[i]!=null && r[i]!=='') r[i]=await sha256(String(r[i]));
-      else if(isPII && opts.mode==='mask' && r[i]!=null && r[i]!=='') r[i]='***';
+      
+      if(isHash && r[i]!=null && r[i]!=='') {
+        hashPromises.push(
+          sha256(String(r[i])).then(hash => ({idx: i, value: hash}))
+        );
+      } else if(isPII && opts.mode==='mask' && r[i]!=null && r[i]!=='') {
+        r[i]='***';
+      }
     }
+    
+    const hashResults = await Promise.all(hashPromises);
+    hashResults.forEach(({idx, value}) => r[idx] = value);
+    
     outRows.push(keep.map(i=>r[i]));
   }
+  
   return {headers:outHeaders, rows:outRows};
 }
 
@@ -342,78 +518,315 @@ function download(filename,text){
   document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
 
-/* ===== Wire-up ===== */
-document.getElementById('bar').style.width='33%';
-document.getElementById('loadBtn').addEventListener('click', async ()=>{
+function downloadJSON(filename, data) {
+  const text = JSON.stringify(data, null, 2);
+  const blob=new Blob([text],{type:'application/json;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+
+/* ===== Drag and Drop ===== */
+const dropZone = $('dropZone');
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+  dropZone.addEventListener(eventName, preventDefaults, false);
+});
+
+function preventDefaults(e) {
+  e.preventDefault();
+  e.stopPropagation();
+}
+
+['dragenter', 'dragover'].forEach(eventName => {
+  dropZone.addEventListener(eventName, ()=> dropZone.classList.add('drag-over'), false);
+});
+
+['dragleave', 'drop'].forEach(eventName => {
+  dropZone.addEventListener(eventName, ()=> dropZone.classList.remove('drag-over'), false);
+});
+
+dropZone.addEventListener('drop', (e) => {
+  const dt = e.dataTransfer;
+  const files = dt.files;
+  if (files.length > 0 && files[0].name.toLowerCase().endsWith('.csv')) {
+    $('file').files = files;
+    setStatus('Got it! Now click "Load My File" to continue. 👍', STATUS_TYPE.SUCCESS);
+  } else {
+    setStatus('Hmm, that doesn\'t look like a CSV file. Please try again with a .csv file.', STATUS_TYPE.ERROR);
+  }
+});
+
+/* ===== Reset ===== */
+$('resetBtn').addEventListener('click', () => {
+  if (confirm('Start over with a new file? (Your current work will be cleared)')) {
+    RAW = { headers: [], rows: [] };
+    ANALYSIS = { piiHeaders: [], alwaysDropHeaders: [], duplicateHeaders: [] };
+    OPTIONS = { mode: 'drop', hashIDs: false, addPseudonymsOnExport: false, selectedDropHeaders: [] };
+    ORIGINAL_BASENAME = '';
+    FILE_SIZE = 0;
+    SESSION_SALT = crypto.randomUUID();
+    PROCESSING_LOG = {};
+    
+    $('file').value = '';
+    $('previewBtn').disabled = true;
+    $('exportBtn').disabled = true;
+    $('pseudonyms').disabled = true;
+    $('pseudonyms').checked = false;
+    $('selAll').disabled = $('selNone').disabled = $('selPII').disabled = $('selNonPII').disabled = true;
+    $('searchCols').disabled = true;
+    $('searchCols').value = '';
+    $('colSelect').innerHTML = 'Load a file first to see all your columns here…';
+    $('notes').innerHTML = '';
+    $('beforeTbl').innerHTML = '<div class="muted">Your original data will appear here after you load a file</div>';
+    $('afterTbl').innerHTML = '<div class="muted">Click "Preview Changes" to see your cleaned data here</div>';
+    $('exportSummary').innerHTML = '';
+    $('statsContainer').style.display = 'none';
+    $('resetBtn').style.display = 'none';
+    
+    setStatus('All clear! Ready for a new file. 🎉', STATUS_TYPE.SUCCESS);
+    setSteps(0);
+  }
+});
+
+/* ===== Load CSV ===== */
+$('loadBtn').addEventListener('click', async ()=>{
   const f=$('file').files[0];
-  if(!f){ setStatus('<span class="bad">Choose a CSV file.</span>'); return; }
-  setStatus('Reading CSV…'); setSteps(0);
-  ORIGINAL_BASENAME = (f.name || 'data').replace(/\.[^/.]+$/, '');
-  const text=await f.text();
-  const rows=parseCSV(text);
-  if(!rows.length){ setStatus('<span class="bad">No rows found.</span>'); return; }
-  RAW.headers=rows[0]; RAW.rows=rows.slice(1);
-  ANALYSIS=analyzeHeaders(RAW.headers);
-
-  $('previewBtn').disabled=false;
-  $('exportBtn').disabled=false;
-  $('pseudonyms').disabled=false;
-  $('selAll').disabled=$('selNone').disabled=$('selPII').disabled=$('selNonPII').disabled=false;
-  $('searchCols').disabled=false;
-
-  hydrateColumnPicker(RAW.headers, ANALYSIS);
-  $('notes').innerHTML = `${ANALYSIS.piiHeaders.length ? 'PII headers: ' + ANALYSIS.piiHeaders.map(h=>'<span class="chip">'+h+'</span>').join(' ') : 'No PII headers detected.'}
-    ${ANALYSIS.alwaysDropHeaders.length ? '<br><b>Force-removed:</b> ' + ANALYSIS.alwaysDropHeaders.map(h=>'<span class="chip">'+h+'</span>').join(' ') : ''}`;
-
-  renderTable(RAW.headers, RAW.rows, 'beforeTbl');
-  setStatus('<span class="ok">Loaded.</span> Adjust options and Preview.');
-});
-
-document.getElementById('previewBtn').addEventListener('click', async ()=>{
-  OPTIONS.mode=document.querySelector('input[name="mode"]:checked').value;
-  OPTIONS.hashIDs=$('hashIDs').checked;
-  OPTIONS.addPseudonymsOnExport=$('pseudonyms').checked;
-  OPTIONS.selectedDropHeaders=collectUserSelected();
-
-  setStatus('Transforming for preview…'); setSteps(1);
-  const out=await transform(RAW.headers, RAW.rows, OPTIONS, ANALYSIS);
-  renderTable(out.headers, out.rows, 'afterTbl');
-  setStatus('<span class="ok">Preview ready.</span>');
-});
-
-document.getElementById('exportBtn').addEventListener('click', async ()=>{
-  OPTIONS.mode=document.querySelector('input[name="mode"]:checked').value;
-  OPTIONS.hashIDs=$('hashIDs').checked;
-  OPTIONS.addPseudonymsOnExport=$('pseudonyms').checked;
-  OPTIONS.selectedDropHeaders=collectUserSelected();
-
-  setStatus('Building export…'); setSteps(2);
-  const out=await transform(RAW.headers, RAW.rows, OPTIONS, ANALYSIS);
-  let headers=[...out.headers];
-  let rows=out.rows.map(r=>[...r]);
-  if(OPTIONS.addPseudonymsOnExport){
-    const pseu=makePseudonyms(rows.length);
-    headers=['Pseudonym', ...headers];
-    rows=rows.map((r,i)=>[pseu[i], ...r]);
+  if(!f){ 
+    setStatus('Oops! Please choose a CSV file first.', STATUS_TYPE.ERROR); 
+    return; 
   }
-  if(!headers.length){
-    setStatus('<span class="bad">No columns remain after cleaning. Uncheck some removals or switch to “Mask values”.</span>');
-    return;
+  
+  try {
+    setLoading(true, 'Reading your file…');
+    setSteps(0);
+    
+    FILE_SIZE = f.size;
+    const maxBytes = CONFIG.MAX_FILE_SIZE_MB * 1024 * 1024;
+    if (FILE_SIZE > maxBytes) {
+      if (!confirm(`This file is pretty big (${formatBytes(FILE_SIZE)}). It might take a minute to process. Want to continue?`)) {
+        setStatus('No problem! Pick a smaller file if you\'d like.', STATUS_TYPE.INFO);
+        return;
+      }
+    }
+    
+    ORIGINAL_BASENAME = (f.name || 'data').replace(/\.[^/.]+$/, '');
+    const text = await f.text();
+    const rows = parseCSV(text);
+    
+    if(!rows.length) {
+      throw new Error('This file appears to be empty. Please check your file and try again.');
+    }
+    
+    if(rows.length < 2) {
+      throw new Error('This file needs at least two rows (one for column names, one for data).');
+    }
+    
+    RAW.headers = rows[0];
+    RAW.rows = rows.slice(1);
+    
+    if(!RAW.headers.length) {
+      throw new Error('No columns found. Make sure your CSV has column headers in the first row.');
+    }
+    
+    ANALYSIS = analyzeHeaders(RAW.headers);
+    
+    const warnings = [];
+    if (ANALYSIS.duplicateHeaders.length > 0) {
+      warnings.push(`⚠️ Heads up: Some column names appear more than once: ${ANALYSIS.duplicateHeaders.join(', ')}`);
+    }
+    
+    $('previewBtn').disabled = false;
+    $('exportBtn').disabled = false;
+    $('pseudonyms').disabled = false;
+    $('selAll').disabled = $('selNone').disabled = $('selPII').disabled = $('selNonPII').disabled = false;
+    $('searchCols').disabled = false;
+    $('resetBtn').style.display = 'inline-block';
+    
+    hydrateColumnPicker(RAW.headers, ANALYSIS);
+    
+    let notesHTML = '';
+    if (ANALYSIS.piiHeaders.length) {
+      notesHTML += `<b>✓ Found ${ANALYSIS.piiHeaders.length} column(s) with private info:</b> `;
+      notesHTML += ANALYSIS.piiHeaders.map(h=>`<span class="chip">${h}</span>`).join(' ');
+    } else {
+      notesHTML += '<b>✓ Good news! No obvious private info detected in your column names.</b>';
+    }
+    
+    if (ANALYSIS.alwaysDropHeaders.length) {
+      notesHTML += `<br><b>🔒 These columns will always be removed for safety (${ANALYSIS.alwaysDropHeaders.length}):</b> `;
+      notesHTML += ANALYSIS.alwaysDropHeaders.map(h=>`<span class="chip">${h}</span>`).join(' ');
+    }
+    
+    if (warnings.length > 0) {
+      notesHTML += `<br><span class="warning">${warnings.join('<br>')}</span>`;
+    }
+    
+    $('notes').innerHTML = notesHTML;
+    
+    showStats(RAW.rows.length, RAW.headers.length, FILE_SIZE);
+    renderTable(RAW.headers, RAW.rows, 'beforeTbl');
+    setStatus(`Perfect! Loaded ${RAW.rows.length.toLocaleString()} rows with ${RAW.headers.length} columns. Ready to preview! ✅`, STATUS_TYPE.SUCCESS);
+    
+  } catch(e) {
+    console.error('Load error:', e);
+    setStatus(`Oops! ${e.message}`, STATUS_TYPE.ERROR);
+    $('resetBtn').style.display = 'inline-block';
   }
-  const csv=toCSV([headers, ...rows]);
-  const filename = `SANITIZED_${ORIGINAL_BASENAME}_SANITIZED.csv`;
-  download(filename, csv);
-  setStatus('<span class="ok">Exported clean CSV as <b>'+filename+'</b>.</span>');
 });
 
-/* Column quick-selects + filter */
-document.getElementById('selAll').addEventListener('click', ()=>{
-  document.querySelectorAll('#colSelect input[type="checkbox"]').forEach(cb=>{ if(!cb.disabled) cb.checked=true; });
+/* ===== Preview ===== */
+$('previewBtn').addEventListener('click', async ()=>{
+  try {
+    OPTIONS.mode = document.querySelector('input[name="mode"]:checked').value;
+    OPTIONS.hashIDs = $('hashIDs').checked;
+    OPTIONS.addPseudonymsOnExport = $('pseudonyms').checked;
+    OPTIONS.selectedDropHeaders = collectUserSelected();
+    
+    saveSettings();
+    
+    setLoading(true, 'Creating your preview…');
+    setSteps(1);
+    
+    const out = await transform(RAW.headers, RAW.rows, OPTIONS, ANALYSIS);
+    
+    if (!out.headers.length) {
+      setStatus('Uh oh! All columns would be removed with these settings. Try unchecking some boxes or choosing "Hide info" instead.', STATUS_TYPE.WARNING);
+      $('afterTbl').innerHTML = '<div class="muted">All columns would be removed with current settings. Please adjust your choices above!</div>';
+      return;
+    }
+    
+    renderTable(out.headers, out.rows, 'afterTbl');
+    
+    const removed = RAW.headers.length - out.headers.length;
+    const piiRemoved = OPTIONS.mode === 'drop' ? 
+      ANALYSIS.piiHeaders.filter(h => !out.headers.includes(h)).length : 0;
+    const userRemoved = OPTIONS.selectedDropHeaders.length;
+    const alwaysRemoved = ANALYSIS.alwaysDropHeaders.length;
+    
+    let statusMsg = `Looking good! Removed ${removed} column(s): `;
+    const parts = [];
+    if (alwaysRemoved > 0) parts.push(`${alwaysRemoved} for safety`);
+    if (piiRemoved > 0) parts.push(`${piiRemoved} private info`);
+    if (userRemoved > 0) parts.push(`${userRemoved} you selected`);
+    statusMsg += parts.join(', ') + '. Happy with it? Download below! ✨';
+    
+    setStatus(statusMsg, STATUS_TYPE.SUCCESS);
+    
+  } catch(e) {
+    console.error('Preview error:', e);
+    setStatus(`Hmm, something went wrong: ${e.message}`, STATUS_TYPE.ERROR);
+  }
 });
-document.getElementById('selNone').addEventListener('click', ()=>{
-  document.querySelectorAll('#colSelect input[type="checkbox"]').forEach(cb=>{ if(!cb.disabled) cb.checked=false; });
+
+/* ===== Export ===== */
+$('exportBtn').addEventListener('click', async ()=>{
+  try {
+    OPTIONS.mode = document.querySelector('input[name="mode"]:checked').value;
+    OPTIONS.hashIDs = $('hashIDs').checked;
+    OPTIONS.addPseudonymsOnExport = $('pseudonyms').checked;
+    OPTIONS.selectedDropHeaders = collectUserSelected();
+    
+    saveSettings();
+    
+    setLoading(true, 'Preparing your clean file…');
+    setSteps(2);
+    
+    const out = await transform(RAW.headers, RAW.rows, OPTIONS, ANALYSIS);
+    
+    if(!out.headers.length){
+      setStatus('Oops! No columns would be left. Please uncheck some columns or choose "Hide info" instead.', STATUS_TYPE.ERROR);
+      return;
+    }
+    
+    let headers = [...out.headers];
+    let rows = out.rows.map(r=>[...r]);
+    
+    if(OPTIONS.addPseudonymsOnExport){
+      const pseu = makePseudonyms(rows.length);
+      headers = ['Pseudonym', ...headers];
+      rows = rows.map((r,i)=>[pseu[i], ...r]);
+    }
+    
+    PROCESSING_LOG = {
+      timestamp: new Date().toISOString(),
+      originalFile: ORIGINAL_BASENAME + '.csv',
+      cleanFile: `CLEAN_${ORIGINAL_BASENAME}.csv`,
+      sessionCode: SESSION_SALT,
+      whatWeStartedWith: {
+        rows: RAW.rows.length,
+        columns: RAW.headers.length,
+        fileSize: formatBytes(FILE_SIZE)
+      },
+      whatYouGot: {
+        rows: rows.length,
+        columns: headers.length
+      },
+      whatWeDid: {
+        removedOrHid: OPTIONS.mode === 'drop' ? 'Removed columns' : 'Hid info with ***',
+        scrambledIDs: OPTIONS.hashIDs ? 'Yes' : 'No',
+        addedPseudonyms: OPTIONS.addPseudonymsOnExport ? 'Yes' : 'No',
+        columnsRemoved: {
+          total: RAW.headers.length - out.headers.length,
+          autoRemoved: ANALYSIS.alwaysDropHeaders,
+          privateInfo: OPTIONS.mode === 'drop' ? 
+            ANALYSIS.piiHeaders.filter(h => !out.headers.includes(h)) : [],
+          youSelected: OPTIONS.selectedDropHeaders
+        }
+      }
+    };
+    
+    const csv = toCSV([headers, ...rows]);
+    const filename = `CLEAN_${ORIGINAL_BASENAME}.csv`;
+    download(filename, csv);
+    
+    const logFilename = `CLEAN_${ORIGINAL_BASENAME}_log.json`;
+    downloadJSON(logFilename, PROCESSING_LOG);
+    
+    const summary = `
+      <div class="card" style="border-color:var(--ok);border-width:2px">
+        <h3 style="margin:0 0 10px;color:var(--ok)">🎉 Success! Your files are downloading now</h3>
+        <p><b>You'll get two files:</b></p>
+        <ul style="margin:8px 0;line-height:1.8">
+          <li>📊 <code>${filename}</code> — Your clean, safe-to-share data (${rows.length.toLocaleString()} rows, ${headers.length} columns)</li>
+          <li>📋 <code>${logFilename}</code> — A record of what changed (keep this for your records)</li>
+        </ul>
+        <div class="friendly-note">
+          <b>What we removed:</b> ${RAW.headers.length - out.headers.length} column(s) total —
+          ${ANALYSIS.alwaysDropHeaders.length} auto-removed for safety,
+          ${OPTIONS.mode === 'drop' ? ANALYSIS.piiHeaders.filter(h => !out.headers.includes(h)).length : 0} private info columns,
+          ${OPTIONS.selectedDropHeaders.length} you picked
+          ${OPTIONS.hashIDs ? ' | Student IDs scrambled ✓' : ''}
+          ${OPTIONS.addPseudonymsOnExport ? ' | Fun pseudonyms added ✓' : ''}
+        </div>
+        <p class="muted" style="margin-top:10px">
+          <b>📝 Remember:</b> Always review your cleaned data before sharing it. This tool helps a lot, but you're the final quality check! If you're sharing this outside your school, double-check with your data coordinator.
+        </p>
+      </div>
+    `;
+    $('exportSummary').innerHTML = summary;
+    
+    setStatus(`All done! Check your downloads folder for <b>${filename}</b> 🎊`, STATUS_TYPE.SUCCESS);
+    
+  } catch(e) {
+    console.error('Export error:', e);
+    setStatus(`Oops, something went wrong: ${e.message}`, STATUS_TYPE.ERROR);
+  }
 });
-document.getElementById('selPII').addEventListener('click', ()=>{
+
+/* ===== Column Selection Helpers ===== */
+$('selAll').addEventListener('click', ()=>{
+  document.querySelectorAll('#colSelect input[type="checkbox"]').forEach(cb=>{ 
+    if(!cb.disabled) cb.checked=true; 
+  });
+});
+
+$('selNone').addEventListener('click', ()=>{
+  document.querySelectorAll('#colSelect input[type="checkbox"]').forEach(cb=>{ 
+    if(!cb.disabled) cb.checked=false; 
+  });
+});
+
+$('selPII').addEventListener('click', ()=>{
   document.querySelectorAll('#colSelect .col-row').forEach(row=>{
     const name=row.querySelector('.col-name')?.textContent||'';
     const isPII=ANALYSIS.piiHeaders.includes(name);
@@ -421,7 +834,8 @@ document.getElementById('selPII').addEventListener('click', ()=>{
     if(cb && !cb.disabled) cb.checked=!!isPII;
   });
 });
-document.getElementById('selNonPII').addEventListener('click', ()=>{
+
+$('selNonPII').addEventListener('click', ()=>{
   document.querySelectorAll('#colSelect .col-row').forEach(row=>{
     const name=row.querySelector('.col-name')?.textContent||'';
     const isPII=ANALYSIS.piiHeaders.includes(name);
@@ -429,7 +843,12 @@ document.getElementById('selNonPII').addEventListener('click', ()=>{
     if(cb && !cb.disabled) cb.checked=!isPII;
   });
 });
-document.getElementById('searchCols').addEventListener('input', filterColumns);
+
+$('searchCols').addEventListener('input', filterColumns);
+
+/* ===== Initial State ===== */
+setSteps(0);
+$('bar').style.width='33%';
 </script>
 </body>
 </html>
