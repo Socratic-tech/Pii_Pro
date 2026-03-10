@@ -4,222 +4,843 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Student Data Helper — Make Your Data Safe to Share</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --brand:#0b5fff;
-    --brand-2:#5f9bff;
-    --border:#e5e7eb;
-    --muted:#6b7280;
-    --ok:#16a34a;
-    --bad:#ef4444;
-    --warning:#f59e0b;
-    --ink:#0f172a;
-    --bg:#f8fafc;
-    --card:#ffffff;
-    --chip:#f1f5f9;
-    --table-border:#e5e7eb;
-    --callout-bg:#fff8db;
-    --callout-border:#e6b800;
+  :root {
+    --brand: #0ea5b0;
+    --brand-2: #06c4cb;
+    --brand-glow: rgba(14,165,176,0.18);
+    --brand-subtle: rgba(14,165,176,0.08);
+    --border: #e2e8f0;
+    --border-subtle: #f1f5f9;
+    --muted: #64748b;
+    --ok: #10b981;
+    --ok-subtle: rgba(16,185,129,0.1);
+    --bad: #ef4444;
+    --bad-subtle: rgba(239,68,68,0.1);
+    --warning: #f59e0b;
+    --warning-subtle: rgba(245,158,11,0.1);
+    --ink: #0f172a;
+    --ink-2: #1e293b;
+    --bg: #f8fafc;
+    --bg-2: #f1f5f9;
+    --card: #ffffff;
+    --card-raised: #ffffff;
+    --chip: #f1f5f9;
+    --table-border: #e2e8f0;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow: 0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.06);
+    --radius: 14px;
+    --radius-sm: 8px;
+    --font: 'DM Sans', system-ui, sans-serif;
+    --mono: 'DM Mono', monospace;
   }
-  [data-theme="dark"]{
-    --brand:#4a8bff;
-    --brand-2:#8cb3ff;
-    --border:#283548;
-    --muted:#9aa5b1;
-    --ok:#22c55e;
-    --bad:#f87171;
-    --warning:#fbbf24;
-    --ink:#e5e7eb;
-    --bg:#0f172a;
-    --card:#121a2a;
-    --chip:#111827;
-    --table-border:#1f2937;
-    --callout-bg:#1f2937;
-    --callout-border:#374151;
+  [data-theme="dark"] {
+    --brand: #22d3db;
+    --brand-2: #06b6d4;
+    --brand-glow: rgba(34,211,219,0.15);
+    --brand-subtle: rgba(34,211,219,0.07);
+    --border: #1e293b;
+    --border-subtle: #162030;
+    --muted: #94a3b8;
+    --ok: #34d399;
+    --ok-subtle: rgba(52,211,153,0.12);
+    --bad: #f87171;
+    --bad-subtle: rgba(248,113,113,0.12);
+    --warning: #fbbf24;
+    --warning-subtle: rgba(251,191,36,0.12);
+    --ink: #e2e8f0;
+    --ink-2: #cbd5e1;
+    --bg: #0a1628;
+    --bg-2: #0f1e35;
+    --card: #0d1b30;
+    --card-raised: #112040;
+    --chip: #0f1e35;
+    --table-border: #1e293b;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+    --shadow: 0 4px 16px rgba(0,0,0,0.4);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
   }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{background:var(--bg);color:var(--ink);font:15px system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;margin:0;line-height:1.6}
-  a{color:var(--brand);text-decoration:none}
-  .shell{max-width:1080px;margin:28px auto 64px;padding:0 20px}
-  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:14px}
-  .header-left{display:flex;align-items:center;gap:12px}
-  .logo{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;color:#fff;font-weight:800;background:linear-gradient(135deg,var(--brand),var(--brand-2))}
-  h1{font-size:20px;margin:0}
-  .subtitle{color:var(--muted);font-size:13px;margin-top:2px}
-  .toggle{display:flex;align-items:center;gap:8px}
-  .toggle button{padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:transparent;color:var(--ink);cursor:pointer}
-  .toggle button.active{background:var(--brand);border-color:var(--brand);color:#fff}
-  .muted{color:var(--muted);font-size:13px}
-  .warning{color:var(--warning)}
-  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
-  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin:12px 0}
-  .card.drop-zone{border:2px dashed var(--border);transition:all .2s}
-  .card.drop-zone.drag-over{border-color:var(--brand);background:rgba(11,95,255,.05)}
-  .callout{border:1px solid var(--callout-border);background:var(--callout-bg);border-radius:10px;padding:12px;line-height:1.5}
-  label{font-size:14px;cursor:pointer}
-  input[type="file"],select,button{font:inherit;color:inherit}
-  button{padding:8px 14px;border:1px solid var(--border);border-radius:10px;background:transparent;cursor:pointer;transition:all .2s;font-size:14px}
-  button.primary{background:var(--brand);color:#fff;border-color:var(--brand);font-weight:600}
-  button.primary:hover:not(:disabled){background:var(--brand-2);transform:translateY(-1px)}
-  button.ghost{background:transparent}
-  button.ghost:hover:not(:disabled){background:var(--chip)}
-  button.danger{border-color:var(--bad);color:var(--bad)}
-  button:disabled{opacity:.55;cursor:not-allowed}
-  .cols{max-height:220px;overflow:auto;border:1px solid var(--border);border-radius:8px;padding:8px;min-width:260px;background:transparent}
-  .cols label{display:flex;gap:8px;padding:4px 2px}
-  .badge{font-size:10px;border:1px solid var(--border);border-radius:6px;padding:0 6px;font-weight:600}
-  .badge.pii{background:rgba(239,68,68,.12);border-color:#f0b5b5;color:#fca5a5}
-  [data-theme="dark"] .badge.pii{border-color:#7f1d1d;color:#fecaca;background:rgba(239,68,68,.12)}
-  .badge.always{background:rgba(59,130,246,.12);border-color:#93c5fd;color:#93c5fd}
-  [data-theme="dark"] .badge.always{border-color:#1d4ed8;color:#bfdbfe}
-  .chip{display:inline-block;border:1px solid var(--border);border-radius:999px;padding:3px 10px;margin:2px 6px 0 0;font-size:11px;background:var(--chip)}
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  th,td{border-bottom:1px solid var(--table-border);padding:8px;text-align:left;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  th{font-weight:600}
-  .grid{display:grid;gap:10px;grid-template-columns:1fr}
-  @media(min-width:900px){.grid{grid-template-columns:1fr 1fr}}
-  .ok{color:var(--ok)}.bad{color:var(--bad)}
-  .search{border:1px solid var(--border);border-radius:8px;padding:7px 10px;min-width:220px;background:transparent;color:inherit}
-  .steps{display:flex;gap:10px;align-items:center;margin:14px 0 6px}
-  .step{display:flex;align-items:center;gap:8px;color:var(--muted);font-weight:600;font-size:14px}
-  .step .dot{width:24px;height:24px;border-radius:999px;background:rgba(148,163,184,.3);color:var(--ink);display:grid;place-items:center;font-size:12px}
-  .step.active{color:var(--brand)}
-  .step.active .dot{background:var(--brand);color:#fff}
-  .progress{height:8px;background:rgba(148,163,184,.3);border-radius:999px;overflow:hidden}
-  .bar{height:8px;background:linear-gradient(90deg,var(--brand) 0%,var(--brand-2) 100%);border-radius:999px;width:33%;transition:width .3s}
-  .instructions h3{margin:0 0 8px;font-size:18px}
-  .instructions ol{margin:8px 0 0 20px}
-  .instructions li{margin:8px 0}
-  .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--brand);border-radius:50%;animation:spin .6s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:12px 0}
-  .stat-card{background:var(--chip);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center}
-  .stat-value{font-size:22px;font-weight:700;color:var(--brand)}
-  .stat-label{font-size:11px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
-  .version{position:fixed;bottom:10px;right:10px;font-size:10px;color:var(--muted);opacity:.6}
-  .friendly-note{background:rgba(11,95,255,.05);border-left:3px solid var(--brand);padding:10px 12px;margin:10px 0;border-radius:6px;font-size:13.5px}
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+
+  /* ===== Accessibility ===== */
+  /* Screen-reader only utility */
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+  }
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+  /* Global focus-visible ring — never suppress focus for keyboard users */
+  :focus-visible {
+    outline: 3px solid var(--brand);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  /* Buttons get a slightly tighter ring */
+  button:focus-visible {
+    outline: 3px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    transition: background 0.25s, color 0.25s;
+  }
+
+  /* ===== Layout ===== */
+  .shell { max-width: 1100px; margin: 0 auto 80px; padding: 0 24px; }
+
+  /* ===== Header ===== */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 0 24px;
+    gap: 16px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo-mark {
+    width: 46px; height: 46px;
+    background: linear-gradient(135deg, var(--brand), var(--brand-2));
+    border-radius: 12px;
+    display: grid; place-items: center;
+    font-size: 22px;
+    box-shadow: 0 2px 12px var(--brand-glow);
+    flex-shrink: 0;
+  }
+  .header-text h1 {
+    font-size: 19px; font-weight: 700;
+    letter-spacing: -0.3px;
+    color: var(--ink);
+  }
+  .header-text .tagline {
+    font-size: 13px; color: var(--muted); font-weight: 400; margin-top: 1px;
+  }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+  .theme-toggle {
+    display: flex;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .theme-toggle button {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .theme-toggle button.active {
+    background: var(--card);
+    color: var(--ink);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* ===== Steps ===== */
+  .stepper {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 28px;
+  }
+  .step-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+    flex: 1;
+    position: relative;
+  }
+  .step-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: calc(100% - 130px);
+    height: 1px;
+    background: var(--border);
+    left: 130px;
+  }
+  .step-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--bg-2);
+    border: 1.5px solid var(--border);
+    display: grid; place-items: center;
+    font-size: 12px; font-weight: 700;
+    flex-shrink: 0;
+    transition: all 0.3s;
+  }
+  .step-item.active .step-num {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: #fff;
+    box-shadow: 0 0 0 4px var(--brand-glow);
+  }
+  .step-item.active { color: var(--brand); }
+  .step-item.done .step-num {
+    background: var(--ok-subtle);
+    border-color: var(--ok);
+    color: var(--ok);
+  }
+  .step-item.done { color: var(--ok); }
+  .step-label { white-space: nowrap; }
+
+  .progress-track {
+    height: 3px;
+    background: var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--brand), var(--brand-2));
+    border-radius: 999px;
+    width: 33%;
+    transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* ===== Cards ===== */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.2s;
+  }
+  .card-title {
+    font-size: 14px; font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title .icon { font-size: 16px; }
+
+  /* ===== Welcome Block ===== */
+  .welcome-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  @media(max-width:700px){ .welcome-grid { grid-template-columns: 1fr; } }
+  .welcome-step {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 14px;
+    background: var(--bg-2);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    border: 1px solid var(--border-subtle);
+  }
+  .welcome-step-num {
+    width: 26px; height: 26px;
+    background: var(--brand);
+    color: #fff;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: 12px; font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .welcome-step strong { display: block; margin-bottom: 3px; font-weight: 600; color: var(--ink); }
+  .welcome-step p { color: var(--muted); font-size: 13px; line-height: 1.5; margin: 0; }
+  .callout {
+    background: var(--warning-subtle);
+    border: 1px solid var(--warning);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--ink-2);
+    line-height: 1.55;
+  }
+  .callout b { color: var(--ink); }
+
+  /* ===== Drop Zone ===== */
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    background: var(--card);
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    margin-bottom: 16px;
+  }
+  .drop-zone.drag-over {
+    border-color: var(--brand);
+    background: var(--brand-subtle);
+    box-shadow: 0 0 0 4px var(--brand-glow);
+  }
+  .file-row {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px;
+  }
+  input[type="file"] {
+    font-family: var(--font);
+    font-size: 13px;
+    color: var(--ink);
+  }
+  input[type="file"]::file-selector-button {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 14px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    margin-right: 10px;
+    transition: all 0.2s;
+  }
+  input[type="file"]::file-selector-button:hover {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: #fff;
+  }
+
+  /* ===== Buttons ===== */
+  button {
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 9px 18px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    transition: all 0.18s;
+    display: inline-flex; align-items: center; gap: 7px;
+    white-space: nowrap;
+  }
+  button:hover:not(:disabled) { background: var(--bg-2); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  button.primary {
+    background: var(--brand);
+    color: #fff;
+    border-color: var(--brand);
+    font-weight: 600;
+    box-shadow: 0 2px 10px var(--brand-glow);
+  }
+  button.primary:hover:not(:disabled) {
+    background: var(--brand-2);
+    border-color: var(--brand-2);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px var(--brand-glow);
+  }
+  button.ghost { border-color: transparent; color: var(--muted); font-size: 13px; padding: 7px 12px; }
+  button.ghost:hover:not(:disabled) { background: var(--bg-2); color: var(--ink); border-color: var(--border); }
+  button.danger { border-color: var(--bad); color: var(--bad); }
+  button.danger:hover:not(:disabled) { background: var(--bad-subtle); }
+  button.sm { padding: 6px 12px; font-size: 13px; }
+
+  /* ===== Stats ===== */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .stat-box {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .stat-val { font-size: 26px; font-weight: 700; color: var(--brand); font-variant-numeric: tabular-nums; }
+  .stat-lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; margin-top: 2px; font-weight: 500; }
+
+  /* ===== Options Panel ===== */
+  .options-section { margin-bottom: 16px; }
+  .options-label {
+    font-size: 13px; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 8px; display: block;
+  }
+  .mode-options {
+    display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px;
+  }
+  .mode-card {
+    flex: 1; min-width: 200px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; gap: 10px; align-items: flex-start;
+    background: var(--card);
+  }
+  .mode-card:has(input:checked) {
+    border-color: var(--brand);
+    background: var(--brand-subtle);
+    box-shadow: 0 0 0 3px var(--brand-glow);
+  }
+  .mode-card input[type="radio"] { margin-top: 3px; accent-color: var(--brand); flex-shrink: 0; }
+  .mode-card-title { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+  .mode-card-desc { font-size: 12px; color: var(--muted); line-height: 1.4; }
+
+  .checkbox-options { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .check-pill {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+  .check-pill:has(input:checked) {
+    background: var(--brand-subtle);
+    border-color: var(--brand);
+    color: var(--brand);
+  }
+  .check-pill input { accent-color: var(--brand); }
+  .check-pill:has(input:disabled) { opacity: 0.45; cursor: not-allowed; }
+
+  /* ===== Column Picker ===== */
+  .col-picker-wrapper {
+    display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap;
+  }
+  .col-picker-box {
+    flex: 1; min-width: 240px;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-2);
+    padding: 6px;
+    font-size: 13px;
+  }
+  .col-picker-box::-webkit-scrollbar { width: 6px; }
+  .col-picker-box::-webkit-scrollbar-track { background: transparent; }
+  .col-picker-box::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  .col-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .col-row:hover { background: var(--card); }
+  .col-row input[type="checkbox"] { accent-color: var(--brand); flex-shrink: 0; }
+  .col-name { flex: 1; font-family: var(--mono); font-size: 12px; color: var(--ink); }
+  .col-actions {
+    display: flex; flex-direction: column; gap: 6px;
+    min-width: 160px;
+  }
+  .search-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--card);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 13px;
+    outline: none; /* focus-visible handled below */
+    transition: border-color 0.2s;
+  }
+  .search-input:focus-visible { outline: 3px solid var(--brand); outline-offset: 0; border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-glow); }
+  .search-input::placeholder { color: var(--muted); }
+  .search-input:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ===== Badges ===== */
+  .badge {
+    display: inline-flex; align-items: center;
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.4px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    flex-shrink: 0;
+  }
+  .badge.pii { background: var(--bad-subtle); color: var(--bad); border: 1px solid var(--bad); }
+  .badge.always { background: var(--brand-subtle); color: var(--brand); border: 1px solid var(--brand); }
+
+  /* ===== Action Row ===== */
+  .action-row {
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    margin-top: 14px;
+  }
+
+  /* ===== Status ===== */
+  .status-bar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    border: 1px solid transparent;
+    margin: 10px 0;
+    min-height: 44px;
+    transition: all 0.25s;
+  }
+  .status-bar.ok { background: var(--ok-subtle); border-color: var(--ok); color: var(--ok); }
+  .status-bar.bad { background: var(--bad-subtle); border-color: var(--bad); color: var(--bad); }
+  .status-bar.warning { background: var(--warning-subtle); border-color: var(--warning); color: var(--warning); }
+  .status-bar.info { background: var(--bg-2); border-color: var(--border); color: var(--muted); }
+  .status-bar:empty { display: none; }
+
+  /* ===== Chips ===== */
+  .chip {
+    display: inline-block;
+    background: var(--chip);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-family: var(--mono);
+    margin: 2px 4px 2px 0;
+  }
+
+  /* ===== Notes ===== */
+  .notes-block {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.7;
+    margin: 12px 0;
+  }
+  .notes-block b { color: var(--ink); font-weight: 600; }
+
+  /* ===== Preview Tables ===== */
+  .preview-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 8px;
+  }
+  @media(max-width:800px) { .preview-grid { grid-template-columns: 1fr; } }
+  .preview-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  .preview-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px; font-weight: 600;
+    background: var(--bg-2);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .preview-header .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .preview-body { overflow-x: auto; padding: 12px; }
+  .empty-state { color: var(--muted); font-size: 13px; padding: 16px 0; text-align: center; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th {
+    padding: 8px 10px;
+    text-align: left;
+    background: var(--bg-2);
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    max-width: 200px; overflow: hidden; text-overflow: ellipsis;
+  }
+  td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border-subtle);
+    max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    color: var(--ink-2);
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg-2); }
+
+  /* ===== Export Summary ===== */
+  .success-banner {
+    background: var(--ok-subtle);
+    border: 1.5px solid var(--ok);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin: 16px 0;
+  }
+  .success-banner h3 { color: var(--ok); font-size: 17px; margin-bottom: 12px; }
+  .success-banner ul { list-style: none; margin: 10px 0; }
+  .success-banner li { margin: 7px 0; font-size: 14px; line-height: 1.5; }
+  .success-banner code {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: rgba(0,0,0,0.06);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  /* ===== Spinner ===== */
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--brand);
+    border-radius: 50%;
+    animation: spin 0.65s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ===== Version ===== */
+  .version-tag {
+    position: fixed; bottom: 12px; right: 14px;
+    font-size: 10px; color: var(--muted); opacity: 0.5;
+    font-family: var(--mono);
+  }
+
+  /* ===== Fade in animation ===== */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .card, .drop-zone, .stepper {
+    animation: fadeUp 0.35s ease both;
+  }
+  .card:nth-child(1) { animation-delay: 0.04s; }
+  .card:nth-child(2) { animation-delay: 0.08s; }
+  .card:nth-child(3) { animation-delay: 0.12s; }
 </style>
 </head>
 <body>
 <div class="shell">
-  <header>
+
+  <!-- HEADER -->
+  <header class="header">
     <div class="header-left">
-      <div class="logo">📚</div>
-      <div>
+      <div class="logo-mark">🛡️</div>
+      <div class="header-text">
         <h1>Student Data Helper</h1>
-        <div class="subtitle">Quickly remove student names and private info from your spreadsheets</div>
+        <div class="tagline">Remove private info from spreadsheets before sharing</div>
       </div>
     </div>
-    <div class="toggle" role="group" aria-label="Theme toggle">
-      <button id="btnLight">Light</button>
-      <button id="btnAuto" class="active">Auto</button>
-      <button id="btnDark">Dark</button>
+    <div class="header-right">
+      <div class="theme-toggle" role="group" aria-label="Color theme">
+        <button id="btnLight" aria-pressed="false">Light</button>
+        <button id="btnAuto" class="active" aria-pressed="true">Auto</button>
+        <button id="btnDark" aria-pressed="false">Dark</button>
+      </div>
     </div>
   </header>
 
-  <div class="steps">
-    <div class="step active"><div class="dot">1</div>Upload Your File</div>
-    <div class="step"><div class="dot">2</div>Check & Preview</div>
-    <div class="step"><div class="dot">3</div>Download Clean File</div>
-  </div>
-  <div class="progress"><div class="bar" id="bar"></div></div>
-
-  <div class="card instructions" aria-labelledby="instr-title">
-    <h3 id="instr-title">👋 Welcome! Here's how this works:</h3>
-    <ol>
-      <li><b>Upload your spreadsheet</b>: Drag and drop your CSV file here, or click "Choose File" and then "Load My File".</li>
-      <li><b>Choose what to do with private info</b>:
-        <ul>
-          <li><b>Remove columns</b> — Student names, IDs, and contact info? Gone!</li>
-          <li><b>Hide the info</b> — Keep the columns but replace sensitive stuff with "***"</li>
-          <li><b>Fun pseudonyms</b> — Want to call students "Sunny Falcon #1" and "Pixel Otter #2"? Check that box! (Makes it easier to discuss students without using real names)</li>
-          <li><b>Pick extra columns to remove</b> — See something you don't need? Just check the box.</li>
-        </ul>
-      </li>
-      <li><b>Take a peek</b>: Click "Preview" to see before and after — first 5 rows so you can double-check everything looks good!</li>
-      <li><b>Save your clean file</b>: Click "Download Clean File" and you're done! You'll get a safe-to-share version plus a log file showing what changed.</li>
-    </ol>
-    <div class="friendly-note">
-      💡 <b>First time here?</b> Don't worry! This tool is designed to be simple. Just load your file and it'll automatically spot things like student names, emails, and phone numbers. You can always preview before downloading anything.
+  <!-- STEPPER -->
+  <nav class="stepper" aria-label="Upload progress steps">
+    <div class="step-item active" id="step0" aria-current="step">
+      <div class="step-num" aria-hidden="true">1</div>
+      <span class="step-label">Upload File</span>
     </div>
-    <div class="callout" style="margin-top:12px">
-      <b>🔒 Important Note About Privacy:</b> This tool helps protect student privacy, but you're still responsible for making sure your cleaned data follows FERPA and your district's policies. The tool removes obvious private info, but please review the results before sharing. If you're not sure, check with your data privacy coordinator!
+    <div class="step-item" id="step1">
+      <div class="step-num" aria-hidden="true">2</div>
+      <span class="step-label">Review &amp; Preview</span>
     </div>
+    <div class="step-item" id="step2">
+      <div class="step-num" aria-hidden="true">3</div>
+      <span class="step-label">Download</span>
+    </div>
+  </nav>
+  <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="33" aria-label="Step progress" id="progressTrack">
+    <div class="progress-fill" id="bar"></div>
   </div>
 
-  <div class="card drop-zone" id="dropZone">
-    <div class="row">
-      <input type="file" id="file" accept=".csv,text/csv" />
-      <button id="loadBtn" class="primary">Load My File</button>
-      <button id="resetBtn" class="danger ghost" style="display:none">Start Over</button>
-      <span id="status" class="muted"></span>
+  <!-- WELCOME CARD -->
+  <div class="card" id="welcomeCard">
+    <div class="card-title"><span class="icon">👋</span> How it works</div>
+    <div class="welcome-grid">
+      <div class="welcome-step">
+        <div class="welcome-step-num">1</div>
+        <div>
+          <strong>Upload your CSV</strong>
+          <p>Drag and drop your file or click "Choose File." The tool automatically spots student names, IDs, emails, and other private info.</p>
+        </div>
+      </div>
+      <div class="welcome-step">
+        <div class="welcome-step-num">2</div>
+        <div>
+          <strong>Choose how to handle private info</strong>
+          <p>Remove columns entirely, mask values with ***, add fun pseudonyms like "Swift Falcon #1", or pick extra columns to drop.</p>
+        </div>
+      </div>
+      <div class="welcome-step">
+        <div class="welcome-step-num">3</div>
+        <div>
+          <strong>Preview your changes</strong>
+          <p>See the first 5 rows before and after — double-check everything looks right before downloading.</p>
+        </div>
+      </div>
+      <div class="welcome-step">
+        <div class="welcome-step-num">4</div>
+        <div>
+          <strong>Download clean files</strong>
+          <p>You'll get your sanitized CSV plus a log file showing exactly what changed — great for your records.</p>
+        </div>
+      </div>
+    </div>
+    <div class="callout">
+      <b>🔒 Privacy reminder:</b> This tool removes obvious private info, but you're still responsible for FERPA compliance and your district's data policies. Always review results before sharing, and check with your data coordinator if unsure.
+    </div>
+  </div>
+
+  <!-- UPLOAD ZONE -->
+  <div class="drop-zone" id="dropZone" role="region" aria-label="File upload area">
+    <div class="file-row">
+      <input type="file" id="file" accept=".csv,text/csv" aria-label="Choose a CSV file to upload" />
+      <button id="loadBtn" class="primary">Load File</button>
+      <button id="resetBtn" class="danger ghost" style="display:none" aria-label="Start over with a new file">↩ Start Over</button>
+      <span id="statusMsg"></span>
     </div>
 
+    <!-- Stats -->
     <div id="statsContainer" style="display:none">
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-value" id="statRows">0</div>
-          <div class="stat-label">Students/Rows</div>
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-val" id="statRows">0</div>
+          <div class="stat-lbl">Rows</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-value" id="statCols">0</div>
-          <div class="stat-label">Info Columns</div>
+        <div class="stat-box">
+          <div class="stat-val" id="statCols">0</div>
+          <div class="stat-lbl">Columns</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-value" id="statSize">0 KB</div>
-          <div class="stat-label">File Size</div>
+        <div class="stat-box">
+          <div class="stat-val" id="statSize">—</div>
+          <div class="stat-lbl">File Size</div>
         </div>
       </div>
     </div>
 
-    <div class="row">
-      <label><input type="radio" name="mode" value="drop" checked /> <b>Remove</b> private info columns (recommended)</label>
-      <label><input type="radio" name="mode" value="mask" /> <b>Hide</b> info with *** (keeps columns)</label>
-    </div>
-    
-    <div class="row">
-      <label title="Converts student IDs to scrambled codes that can't be traced back"><input type="checkbox" id="hashIDs" /> Scramble student IDs (makes them unreadable)</label>
-      <label title="Gives each student a fun, random nickname like 'Swift Falcon #1'"><input type="checkbox" id="pseudonyms" disabled /> Add fun pseudonyms (like "Lucky Badger #1")</label>
+    <!-- Options -->
+    <div class="options-section">
+      <fieldset style="border:none;padding:0;margin:0">
+        <legend class="options-label">How should private info be handled?</legend>
+        <div class="mode-options">
+          <label class="mode-card">
+            <input type="radio" name="mode" value="drop" checked />
+            <div>
+              <div class="mode-card-title"><span aria-hidden="true">🗑️</span> Remove columns</div>
+              <div class="mode-card-desc">Completely drop private info columns — recommended for most situations</div>
+            </div>
+          </label>
+          <label class="mode-card">
+            <input type="radio" name="mode" value="mask" />
+            <div>
+              <div class="mode-card-title"><span aria-hidden="true">🙈</span> Mask with ***</div>
+              <div class="mode-card-desc">Keep columns but replace private values — useful when structure matters</div>
+            </div>
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset style="border:none;padding:0;margin:0">
+        <legend class="sr-only">Additional privacy options</legend>
+        <div class="checkbox-options">
+          <label class="check-pill">
+            <input type="checkbox" id="hashIDs" />
+            <span aria-hidden="true">🔀</span> Scramble student IDs
+          </label>
+          <label class="check-pill">
+            <input type="checkbox" id="pseudonyms" disabled />
+            <span aria-hidden="true">🦊</span> Add fun pseudonyms
+          </label>
+        </div>
+      </fieldset>
     </div>
 
-    <div class="row" style="align-items:flex-start">
-      <div style="min-width:180px;font-weight:600;margin-top:8px">Pick other columns to remove:</div>
-      <div class="cols" id="colSelect">Load a file first to see all your columns here…</div>
-      <div style="display:flex;flex-direction:column;gap:6px">
-        <div class="row" style="gap:6px;margin:0">
-          <button id="selAll" class="ghost" disabled>Check all</button>
-          <button id="selNone" class="ghost" disabled>Uncheck all</button>
+    <!-- Column Picker -->
+    <div class="options-section">
+      <span class="options-label" id="colPickerLabel">Pick additional columns to remove</span>
+      <div class="col-picker-wrapper">
+        <div class="col-picker-box" id="colSelect" role="group" aria-labelledby="colPickerLabel" tabindex="0">
+          <div class="empty-state">Load a file to see your columns here…</div>
         </div>
-        <div class="row" style="gap:6px;margin:0">
-          <button id="selPII" class="ghost" disabled>Check private info</button>
-          <button id="selNonPII" class="ghost" disabled>Check other columns</button>
+        <div class="col-actions">
+          <label for="searchCols" class="sr-only">Search columns</label>
+          <input id="searchCols" class="search-input" type="search" placeholder="Search columns…" disabled aria-label="Filter column list" />
+          <button id="selAll" class="ghost sm" disabled aria-label="Select all columns">Check all</button>
+          <button id="selNone" class="ghost sm" disabled aria-label="Deselect all columns">Uncheck all</button>
+          <button id="selPII" class="ghost sm" disabled aria-label="Select only private info columns">Check private info</button>
+          <button id="selNonPII" class="ghost sm" disabled aria-label="Select non-private info columns">Check other columns</button>
         </div>
-        <input id="searchCols" class="search" type="text" placeholder="Search columns…" disabled />
       </div>
     </div>
 
-    <div class="row">
-      <button id="previewBtn" class="ghost" disabled>👀 Preview Changes (First 5 Rows)</button>
-      <button id="exportBtn" class="primary" disabled>⬇️ Download Clean File</button>
+    <!-- Actions -->
+    <div class="action-row">
+      <button id="previewBtn" class="ghost" disabled aria-label="Preview the first 5 rows of cleaned data"><span aria-hidden="true">👀</span> Preview Changes</button>
+      <button id="exportBtn" class="primary" disabled aria-label="Download cleaned CSV file"><span aria-hidden="true">⬇️</span> Download Clean File</button>
+      <div style="flex:1"></div>
+      <div id="statusMsg2"></div>
     </div>
   </div>
 
-  <div id="notes" class="muted"></div>
+  <!-- Status bar -->
+  <div class="status-bar info" id="statusBar" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Notes -->
+  <div id="notes"></div>
+
+  <!-- Export summary -->
   <div id="exportSummary"></div>
 
-  <div class="grid">
-    <div class="card">
-      <h3 style="margin:0 0 10px">📋 Original Data (first 5 rows)</h3>
-      <div id="beforeTbl" class="muted">Your original data will appear here after you load a file</div>
+  <!-- Preview Tables -->
+  <div class="preview-grid">
+    <div class="preview-panel" role="region" aria-label="Original data preview">
+      <div class="preview-header">
+        <div class="dot" style="background:#f87171" aria-hidden="true"></div>
+        Original Data <span style="color:var(--muted);font-weight:400">(first 5 rows)</span>
+      </div>
+      <div class="preview-body">
+        <div id="beforeTbl" class="empty-state">Your original data will appear here after loading a file</div>
+      </div>
     </div>
-    <div class="card">
-      <h3 style="margin:0 0 10px">✨ Cleaned Data (first 5 rows)</h3>
-      <div id="afterTbl" class="muted">Click "Preview Changes" to see your cleaned data here</div>
+    <div class="preview-panel" role="region" aria-label="Cleaned data preview">
+      <div class="preview-header">
+        <div class="dot" style="background:#34d399" aria-hidden="true"></div>
+        Cleaned Data <span style="color:var(--muted);font-weight:400">(first 5 rows)</span>
+      </div>
+      <div class="preview-body">
+        <div id="afterTbl" class="empty-state">Click "Preview Changes" to see your cleaned data</div>
+      </div>
     </div>
   </div>
+
 </div>
-<div class="version">v2.0 Teacher Friendly</div>
+<div class="version-tag">v3.0 · Student Data Helper</div>
 
 <script>
 /* ===== Configuration ===== */
@@ -242,12 +863,7 @@ const CONFIG = {
   NOUNS: ['Otter','Falcon','Badger','Lynx','Raven','Turtle','Coyote','Panda','Fox','Hawk','Wolf','Koala','Dolphin','Moose','Wolverine','Eagle','Salmon','Bison','Heron','Cedar','Spruce','Birch','Meteor','Comet','Quartz','Ember','Pebble','Harbor','Voyager','Beacon','Arrow','Canyon','River','Summit','Valley','Ridge','Trail','Peak','Mesa','Glacier','Brook','Delta','Dune','Forest','Grove','Haven','Isle','Meadow','Ocean','Prairie']
 };
 
-const STATUS_TYPE = {
-  ERROR: 'bad',
-  SUCCESS: 'ok',
-  WARNING: 'warning',
-  INFO: 'muted'
-};
+const STATUS_TYPE = { ERROR:'bad', SUCCESS:'ok', WARNING:'warning', INFO:'info' };
 
 /* ===== State ===== */
 let RAW = { headers: [], rows: [] };
@@ -270,13 +886,14 @@ let PROCESSING_LOG = {};
   function applyTheme(mode){
     localStorage.setItem('datahelper_theme', mode);
     let m = mode;
-    if (mode === 'auto'){
-      m = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
+    if (mode === 'auto') m = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     root.setAttribute('data-theme', m === 'dark' ? 'dark' : 'light');
-    document.getElementById('btnLight').classList.toggle('active', mode==='light');
-    document.getElementById('btnAuto').classList.toggle('active', mode==='auto');
-    document.getElementById('btnDark').classList.toggle('active', mode==='dark');
+    ['btnLight','btnAuto','btnDark'].forEach(id => {
+      const btn = document.getElementById(id);
+      const isActive = (id === 'btnLight' && mode==='light') || (id === 'btnAuto' && mode==='auto') || (id === 'btnDark' && mode==='dark');
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-pressed', String(isActive));
+    });
   }
 })();
 
@@ -285,16 +902,11 @@ let PROCESSING_LOG = {};
   try {
     const saved = localStorage.getItem('datahelper_settings');
     if (saved) {
-      const settings = JSON.parse(saved);
-      if (settings.mode) {
-        const radio = document.querySelector(`input[name="mode"][value="${settings.mode}"]`);
-        if (radio) radio.checked = true;
-      }
-      if (settings.hashIDs !== undefined) document.getElementById('hashIDs').checked = settings.hashIDs;
+      const s = JSON.parse(saved);
+      if (s.mode) { const r = document.querySelector(`input[name="mode"][value="${s.mode}"]`); if (r) r.checked = true; }
+      if (s.hashIDs !== undefined) document.getElementById('hashIDs').checked = s.hashIDs;
     }
-  } catch(e) {
-    console.warn('Could not load your saved preferences (no big deal!)');
-  }
+  } catch(e) {}
 })();
 
 /* ===== CSV Helpers ===== */
@@ -302,16 +914,8 @@ function parseCSV(text){
   const rows=[]; let i=0, cur='', row=[], inQ=false;
   while(i<text.length){
     const ch=text[i];
-    if(inQ){
-      if(ch==='"'){ if(text[i+1]==='"'){cur+='"'; i++;} else inQ=false; }
-      else cur+=ch;
-    } else {
-      if(ch==='"') inQ=true;
-      else if(ch===','){ row.push(cur); cur=''; }
-      else if(ch==='\n'){ row.push(cur); rows.push(row); cur=''; row=[]; }
-      else if(ch==='\r'){}
-      else cur+=ch;
-    }
+    if(inQ){ if(ch==='"'){ if(text[i+1]==='"'){cur+='"';i++;}else inQ=false;}else cur+=ch; }
+    else { if(ch==='"') inQ=true; else if(ch===','){ row.push(cur);cur=''; } else if(ch==='\n'){ row.push(cur);rows.push(row);cur='';row=[]; } else if(ch==='\r'){} else cur+=ch; }
     i++;
   }
   row.push(cur); rows.push(row);
@@ -327,96 +931,82 @@ function toCSV(rows){
 /* ===== Crypto & Pseudonyms ===== */
 async function sha256(str){
   try {
-    const buf=new TextEncoder().encode((str==null?'':String(str)) + SESSION_SALT);
+    const buf=new TextEncoder().encode((str==null?'':String(str))+SESSION_SALT);
     const hash=await crypto.subtle.digest('SHA-256',buf);
     return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
-  } catch(e) {
-    console.error('Oops, scrambling error:', e);
-    return '***ERROR***';
-  }
+  } catch(e){ return '***ERROR***'; }
 }
 
-function shuffleArray(arr) {
-  const shuffled = [...arr];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-}
+function shuffleArray(arr){ const s=[...arr]; for(let i=s.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[s[i],s[j]]=[s[j],s[i]];}return s; }
 
 function makePseudonyms(n){
-  const ADJ = CONFIG.ADJECTIVES;
-  const NOUN = CONFIG.NOUNS;
-  const pairs = ADJ.flatMap(a => NOUN.map(n => `${a} ${n}`));
-  const shuffled = shuffleArray(pairs);
-  const out = [];
-  for(let i=0; i<n; i++) {
-    out.push(shuffled[i % shuffled.length] + ` #${i+1}`);
-  }
-  return out;
+  const pairs=CONFIG.ADJECTIVES.flatMap(a=>CONFIG.NOUNS.map(n=>`${a} ${n}`));
+  const shuffled=shuffleArray(pairs);
+  return Array.from({length:n},(_,i)=>shuffled[i%shuffled.length]+` #${i+1}`);
 }
 
 /* ===== UI Helpers ===== */
 const $=id=>document.getElementById(id);
 
-function setStatus(html, type = STATUS_TYPE.INFO){
-  $('status').innerHTML = `<span class="${type}">${html}</span>`;
+function setStatus(html, type=STATUS_TYPE.INFO){
+  const bar=$('statusBar');
+  const icon = type==='ok'?'✅':type==='bad'?'Error:':type==='warning'?'Warning:':'';
+  // aria-label with plain text, innerHTML for sighted display
+  const plainText = html.replace(/<[^>]+>/g,'');
+  bar.setAttribute('aria-label', (icon ? icon+' ' : '') + plainText);
+  bar.innerHTML=`<span aria-hidden="true">${type==='info'?'ℹ️':type==='ok'?'✅':type==='bad'?'❌':'⚠️'}</span> <span>${html}</span>`;
+  bar.className=`status-bar ${type}`;
 }
 
-function setLoading(isLoading, message = 'Working on it…') {
-  if (isLoading) {
-    setStatus(`<span class="spinner"></span> ${message}`, STATUS_TYPE.INFO);
-  }
+function setLoading(isLoading, msg='Working…'){
+  if(isLoading) setStatus(`<span class="spinner"></span> ${msg}`, STATUS_TYPE.INFO);
 }
 
 function setSteps(idx){
-  document.querySelectorAll('.steps .step').forEach((s,i)=>s.classList.toggle('active',i<=idx));
-  $('bar').style.width = (idx===0?33:idx===1?66:100)+'%';
+  const labels = ['Upload File', 'Review & Preview', 'Download'];
+  ['step0','step1','step2'].forEach((id,i)=>{
+    const el=$(id);
+    el.classList.remove('active','done');
+    el.removeAttribute('aria-current');
+    if(i<idx) el.classList.add('done');
+    else if(i===idx){ el.classList.add('active'); el.setAttribute('aria-current','step'); }
+  });
+  const pct = idx===0?33:idx===1?66:100;
+  $('bar').style.width = pct+'%';
+  const track = $('progressTrack');
+  if(track){ track.setAttribute('aria-valuenow', String(pct)); track.setAttribute('aria-valuetext', `Step ${idx+1} of 3: ${labels[idx]}`); }
 }
 
-function showStats(rows, cols, size) {
-  $('statRows').textContent = rows.toLocaleString();
-  $('statCols').textContent = cols.toLocaleString();
-  $('statSize').textContent = formatBytes(size);
-  $('statsContainer').style.display = 'block';
+function showStats(rows,cols,size){
+  $('statRows').textContent=rows.toLocaleString();
+  $('statCols').textContent=cols.toLocaleString();
+  $('statSize').textContent=formatBytes(size);
+  $('statsContainer').style.display='block';
 }
 
-function formatBytes(bytes) {
-  if (bytes === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+function formatBytes(bytes){
+  if(bytes===0)return'0 B';
+  const k=1024,sizes=['B','KB','MB','GB'],i=Math.floor(Math.log(bytes)/Math.log(k));
+  return parseFloat((bytes/Math.pow(k,i)).toFixed(1))+' '+sizes[i];
 }
 
 function renderTable(headers,rows,elId){
   const el=$(elId);
-  if(!headers.length){ 
-    el.innerHTML='<div class="muted">Nothing here yet — upload your file to get started!</div>'; 
-    return; 
-  }
-  const thead=`<thead><tr>${headers.map(h=>`<th title="${h}">${h}</th>`).join('')}</tr></thead>`;
+  if(!headers.length){ el.innerHTML='<div class="empty-state">No data to show</div>'; return; }
+  const thead=`<thead><tr>${headers.map(h=>`<th scope="col" title="${h}">${h}</th>`).join('')}</tr></thead>`;
   const body=rows.slice(0,CONFIG.PREVIEW_ROWS).map(r=>`<tr>${headers.map((_,i)=>`<td title="${r[i]??''}">${r[i]??''}</td>`).join('')}</tr>`).join('');
   el.innerHTML=`<table>${thead}<tbody>${body}</tbody></table>`;
 }
 
 function analyzeHeaders(headers){
   const lower=headers.map(h=>String(h||'').trim().toLowerCase());
-  const pii=[], always=[], duplicates=[];
-  
-  const seen = new Set();
-  headers.forEach(h => {
-    if (seen.has(h) && !duplicates.includes(h)) duplicates.push(h);
-    seen.add(h);
-  });
-  
+  const pii=[],always=[],seen=new Set(),duplicates=[];
+  headers.forEach(h=>{ if(seen.has(h)&&!duplicates.includes(h))duplicates.push(h); seen.add(h); });
   lower.forEach((h,i)=>{
     if(CONFIG.PII_KEYWORDS.some(k=>h.includes(k))) pii.push(headers[i]);
     if(CONFIG.ALWAYS_DROP_HEADERS.some(k=>h.includes(k))) always.push(headers[i]);
   });
-  
-  return {piiHeaders:pii, alwaysDropHeaders:always, duplicateHeaders:duplicates};
+  return {piiHeaders:pii,alwaysDropHeaders:always,duplicateHeaders:duplicates};
 }
 
 function hydrateColumnPicker(headers,analysis){
@@ -424,13 +1014,13 @@ function hydrateColumnPicker(headers,analysis){
   headers.forEach(h=>{
     const row=document.createElement('label'); row.className='col-row';
     const cb=document.createElement('input'); cb.type='checkbox'; cb.value=h; cb.name='userDrop';
-    const name=document.createElement('span'); name.className='col-name'; name.textContent=h||'(blank column)';
+    const name=document.createElement('span'); name.className='col-name'; name.textContent=h||'(blank)';
     const pills=document.createElement('span');
     if(analysis.alwaysDropHeaders.includes(h)){
       cb.disabled=true; cb.checked=true;
-      const b=document.createElement('span'); b.className='badge always'; b.textContent='auto-removed'; pills.appendChild(b);
-    } else if (analysis.piiHeaders.includes(h)){
-      const b=document.createElement('span'); b.className='badge pii'; b.textContent='private info'; pills.appendChild(b);
+      const b=document.createElement('span'); b.className='badge always'; b.textContent='auto'; pills.appendChild(b);
+    } else if(analysis.piiHeaders.includes(h)){
+      const b=document.createElement('span'); b.className='badge pii'; b.textContent='PII'; pills.appendChild(b);
     }
     row.appendChild(cb); row.appendChild(name); row.appendChild(pills); box.appendChild(row);
   });
@@ -443,410 +1033,258 @@ function collectUserSelected(){
 function filterColumns(){
   const q=($('searchCols').value||'').trim().toLowerCase();
   document.querySelectorAll('#colSelect .col-row').forEach(row=>{
-    const name=row.querySelector('.col-name')?.textContent?.toLowerCase()||'';
-    row.style.display=name.includes(q)?'':'none';
+    const n=row.querySelector('.col-name')?.textContent?.toLowerCase()||'';
+    row.style.display=n.includes(q)?'':'none';
   });
 }
 
-function saveSettings() {
+function saveSettings(){
   try {
-    const settings = {
+    localStorage.setItem('datahelper_settings', JSON.stringify({
       mode: document.querySelector('input[name="mode"]:checked')?.value,
       hashIDs: $('hashIDs').checked
-    };
-    localStorage.setItem('datahelper_settings', JSON.stringify(settings));
-  } catch(e) {
-    console.warn('Could not save your preferences (no worries!)');
-  }
+    }));
+  } catch(e){}
 }
 
 /* ===== Transform ===== */
 async function transform(headers,rows,opts,analysis){
   const lower=headers.map(h=>String(h||'').trim().toLowerCase());
-  const piiIdx=new Set(); (analysis.piiHeaders||[]).forEach(h=>{const i=headers.indexOf(h); if(i>=0)piiIdx.add(i);});
-  const alwaysIdx=new Set(); (analysis.alwaysDropHeaders||[]).forEach(h=>{const i=headers.indexOf(h); if(i>=0)alwaysIdx.add(i);});
-  const userIdx=new Set(); (opts.selectedDropHeaders||[]).forEach(h=>{const i=headers.indexOf(h); if(i>=0)userIdx.add(i);});
-  const hashIdx=new Set(); 
-  if(opts.hashIDs) {
-    lower.forEach((h,i)=>{ 
-      if(CONFIG.HASH_COLUMNS.some(k=>h.includes(k))) hashIdx.add(i); 
-    });
-  }
-  
-  const keep=[]; 
+  const piiIdx=new Set(); (analysis.piiHeaders||[]).forEach(h=>{const i=headers.indexOf(h);if(i>=0)piiIdx.add(i);});
+  const alwaysIdx=new Set(); (analysis.alwaysDropHeaders||[]).forEach(h=>{const i=headers.indexOf(h);if(i>=0)alwaysIdx.add(i);});
+  const userIdx=new Set(); (opts.selectedDropHeaders||[]).forEach(h=>{const i=headers.indexOf(h);if(i>=0)userIdx.add(i);});
+  const hashIdx=new Set();
+  if(opts.hashIDs) lower.forEach((h,i)=>{ if(CONFIG.HASH_COLUMNS.some(k=>h.includes(k))) hashIdx.add(i); });
+
+  const keep=[];
   headers.forEach((_,i)=>{
-    if(alwaysIdx.has(i)) return;
-    if(userIdx.has(i)) return;
-    if(opts.mode==='drop' && piiIdx.has(i) && !hashIdx.has(i)) return;
+    if(alwaysIdx.has(i)||userIdx.has(i)) return;
+    if(opts.mode==='drop'&&piiIdx.has(i)&&!hashIdx.has(i)) return;
     keep.push(i);
   });
-  
-  const outHeaders=keep.map(i=>headers[i]);
-  const outRows=[];
-  
+
+  const outHeaders=keep.map(i=>headers[i]),outRows=[];
   for(const row of rows){
     const r=[...row];
-    
-    const hashPromises = [];
+    const hp=[];
     for(let i=0;i<r.length;i++){
       if(alwaysIdx.has(i)||userIdx.has(i)) continue;
-      const isPII=piiIdx.has(i), isHash=hashIdx.has(i);
-      
-      if(isHash && r[i]!=null && r[i]!=='') {
-        hashPromises.push(
-          sha256(String(r[i])).then(hash => ({idx: i, value: hash}))
-        );
-      } else if(isPII && opts.mode==='mask' && r[i]!=null && r[i]!=='') {
-        r[i]='***';
-      }
+      if(hashIdx.has(i)&&r[i]!=null&&r[i]!=='') hp.push(sha256(String(r[i])).then(v=>({idx:i,value:v})));
+      else if(piiIdx.has(i)&&opts.mode==='mask'&&r[i]!=null&&r[i]!=='') r[i]='***';
     }
-    
-    const hashResults = await Promise.all(hashPromises);
-    hashResults.forEach(({idx, value}) => r[idx] = value);
-    
+    (await Promise.all(hp)).forEach(({idx,value})=>r[idx]=value);
     outRows.push(keep.map(i=>r[i]));
   }
-  
-  return {headers:outHeaders, rows:outRows};
+  return {headers:outHeaders,rows:outRows};
 }
 
-/* ===== Export ===== */
+/* ===== Export Helpers ===== */
 function download(filename,text){
   const blob=new Blob([text],{type:'text/csv;charset=utf-8;'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download=filename;
-  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+}
+function downloadJSON(filename,data){
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json;charset=utf-8;'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
 }
 
-function downloadJSON(filename, data) {
-  const text = JSON.stringify(data, null, 2);
-  const blob=new Blob([text],{type:'application/json;charset=utf-8;'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download=filename;
-  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-}
-
-/* ===== Drag and Drop ===== */
-const dropZone = $('dropZone');
-['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-  dropZone.addEventListener(eventName, preventDefaults, false);
-});
-
-function preventDefaults(e) {
-  e.preventDefault();
-  e.stopPropagation();
-}
-
-['dragenter', 'dragover'].forEach(eventName => {
-  dropZone.addEventListener(eventName, ()=> dropZone.classList.add('drag-over'), false);
-});
-
-['dragleave', 'drop'].forEach(eventName => {
-  dropZone.addEventListener(eventName, ()=> dropZone.classList.remove('drag-over'), false);
-});
-
-dropZone.addEventListener('drop', (e) => {
-  const dt = e.dataTransfer;
-  const files = dt.files;
-  if (files.length > 0 && files[0].name.toLowerCase().endsWith('.csv')) {
-    $('file').files = files;
-    setStatus('Got it! Now click "Load My File" to continue. 👍', STATUS_TYPE.SUCCESS);
+/* ===== Drag & Drop ===== */
+const dropZone=$('dropZone');
+['dragenter','dragover','dragleave','drop'].forEach(e=>dropZone.addEventListener(e,ev=>{ev.preventDefault();ev.stopPropagation();}));
+['dragenter','dragover'].forEach(e=>dropZone.addEventListener(e,()=>dropZone.classList.add('drag-over')));
+['dragleave','drop'].forEach(e=>dropZone.addEventListener(e,()=>dropZone.classList.remove('drag-over')));
+dropZone.addEventListener('drop',e=>{
+  const files=e.dataTransfer.files;
+  if(files.length>0&&files[0].name.toLowerCase().endsWith('.csv')){
+    $('file').files=files;
+    setStatus('File ready — click "Load File" to continue.', STATUS_TYPE.SUCCESS);
   } else {
-    setStatus('Hmm, that doesn\'t look like a CSV file. Please try again with a .csv file.', STATUS_TYPE.ERROR);
+    setStatus('That doesn\'t look like a CSV file. Please try a .csv file.', STATUS_TYPE.ERROR);
   }
 });
 
 /* ===== Reset ===== */
-$('resetBtn').addEventListener('click', () => {
-  if (confirm('Start over with a new file? (Your current work will be cleared)')) {
-    RAW = { headers: [], rows: [] };
-    ANALYSIS = { piiHeaders: [], alwaysDropHeaders: [], duplicateHeaders: [] };
-    OPTIONS = { mode: 'drop', hashIDs: false, addPseudonymsOnExport: false, selectedDropHeaders: [] };
-    ORIGINAL_BASENAME = '';
-    FILE_SIZE = 0;
-    SESSION_SALT = crypto.randomUUID();
-    PROCESSING_LOG = {};
-    
-    $('file').value = '';
-    $('previewBtn').disabled = true;
-    $('exportBtn').disabled = true;
-    $('pseudonyms').disabled = true;
-    $('pseudonyms').checked = false;
-    $('selAll').disabled = $('selNone').disabled = $('selPII').disabled = $('selNonPII').disabled = true;
-    $('searchCols').disabled = true;
-    $('searchCols').value = '';
-    $('colSelect').innerHTML = 'Load a file first to see all your columns here…';
-    $('notes').innerHTML = '';
-    $('beforeTbl').innerHTML = '<div class="muted">Your original data will appear here after you load a file</div>';
-    $('afterTbl').innerHTML = '<div class="muted">Click "Preview Changes" to see your cleaned data here</div>';
-    $('exportSummary').innerHTML = '';
-    $('statsContainer').style.display = 'none';
-    $('resetBtn').style.display = 'none';
-    
-    setStatus('All clear! Ready for a new file. 🎉', STATUS_TYPE.SUCCESS);
+$('resetBtn').addEventListener('click',()=>{
+  if(confirm('Start over with a new file?')){
+    RAW={headers:[],rows:[]};
+    ANALYSIS={piiHeaders:[],alwaysDropHeaders:[],duplicateHeaders:[]};
+    OPTIONS={mode:'drop',hashIDs:false,addPseudonymsOnExport:false,selectedDropHeaders:[]};
+    ORIGINAL_BASENAME='';FILE_SIZE=0;SESSION_SALT=crypto.randomUUID();PROCESSING_LOG={};
+    $('file').value='';
+    ['previewBtn','exportBtn'].forEach(id=>$(id).disabled=true);
+    $('pseudonyms').disabled=true;$('pseudonyms').checked=false;
+    ['selAll','selNone','selPII','selNonPII'].forEach(id=>$(id).disabled=true);
+    $('searchCols').disabled=true;$('searchCols').value='';
+    $('colSelect').innerHTML='<div class="empty-state">Load a file to see your columns here…</div>';
+    $('notes').innerHTML='';
+    $('beforeTbl').innerHTML='<div class="empty-state">Your original data will appear here after loading a file</div>';
+    $('afterTbl').innerHTML='<div class="empty-state">Click "Preview Changes" to see your cleaned data</div>';
+    $('exportSummary').innerHTML='';
+    $('statsContainer').style.display='none';
+    $('resetBtn').style.display='none';
+    setStatus('Ready for a new file.', STATUS_TYPE.SUCCESS);
     setSteps(0);
   }
 });
 
 /* ===== Load CSV ===== */
-$('loadBtn').addEventListener('click', async ()=>{
+$('loadBtn').addEventListener('click',async()=>{
   const f=$('file').files[0];
-  if(!f){ 
-    setStatus('Oops! Please choose a CSV file first.', STATUS_TYPE.ERROR); 
-    return; 
-  }
-  
+  if(!f){ setStatus('Please choose a CSV file first.', STATUS_TYPE.ERROR); return; }
   try {
-    setLoading(true, 'Reading your file…');
+    setLoading(true,'Reading your file…');
     setSteps(0);
-    
-    FILE_SIZE = f.size;
-    const maxBytes = CONFIG.MAX_FILE_SIZE_MB * 1024 * 1024;
-    if (FILE_SIZE > maxBytes) {
-      if (!confirm(`This file is pretty big (${formatBytes(FILE_SIZE)}). It might take a minute to process. Want to continue?`)) {
-        setStatus('No problem! Pick a smaller file if you\'d like.', STATUS_TYPE.INFO);
-        return;
-      }
+    FILE_SIZE=f.size;
+    const maxBytes=CONFIG.MAX_FILE_SIZE_MB*1024*1024;
+    if(FILE_SIZE>maxBytes&&!confirm(`This file is ${formatBytes(FILE_SIZE)} — it might take a moment. Continue?`)){
+      setStatus('No problem — try a smaller file.', STATUS_TYPE.INFO);return;
     }
-    
-    ORIGINAL_BASENAME = (f.name || 'data').replace(/\.[^/.]+$/, '');
-    const text = await f.text();
-    const rows = parseCSV(text);
-    
-    if(!rows.length) {
-      throw new Error('This file appears to be empty. Please check your file and try again.');
-    }
-    
-    if(rows.length < 2) {
-      throw new Error('This file needs at least two rows (one for column names, one for data).');
-    }
-    
-    RAW.headers = rows[0];
-    RAW.rows = rows.slice(1);
-    
-    if(!RAW.headers.length) {
-      throw new Error('No columns found. Make sure your CSV has column headers in the first row.');
-    }
-    
-    ANALYSIS = analyzeHeaders(RAW.headers);
-    
-    const warnings = [];
-    if (ANALYSIS.duplicateHeaders.length > 0) {
-      warnings.push(`⚠️ Heads up: Some column names appear more than once: ${ANALYSIS.duplicateHeaders.join(', ')}`);
-    }
-    
-    $('previewBtn').disabled = false;
-    $('exportBtn').disabled = false;
-    $('pseudonyms').disabled = false;
-    $('selAll').disabled = $('selNone').disabled = $('selPII').disabled = $('selNonPII').disabled = false;
-    $('searchCols').disabled = false;
-    $('resetBtn').style.display = 'inline-block';
-    
-    hydrateColumnPicker(RAW.headers, ANALYSIS);
-    
-    let notesHTML = '';
-    if (ANALYSIS.piiHeaders.length) {
-      notesHTML += `<b>✓ Found ${ANALYSIS.piiHeaders.length} column(s) with private info:</b> `;
-      notesHTML += ANALYSIS.piiHeaders.map(h=>`<span class="chip">${h}</span>`).join(' ');
+    ORIGINAL_BASENAME=(f.name||'data').replace(/\.[^/.]+$/,'');
+    const text=await f.text(),rows=parseCSV(text);
+    if(!rows.length) throw new Error('This file appears to be empty.');
+    if(rows.length<2) throw new Error('File needs at least two rows (headers + data).');
+    RAW.headers=rows[0]; RAW.rows=rows.slice(1);
+    if(!RAW.headers.length) throw new Error('No columns found. Make sure the first row has headers.');
+    ANALYSIS=analyzeHeaders(RAW.headers);
+    const warnings=[];
+    if(ANALYSIS.duplicateHeaders.length) warnings.push(`⚠️ Duplicate column names found: ${ANALYSIS.duplicateHeaders.join(', ')}`);
+    $('previewBtn').disabled=false;$('exportBtn').disabled=false;$('pseudonyms').disabled=false;
+    ['selAll','selNone','selPII','selNonPII'].forEach(id=>$(id).disabled=false);
+    $('searchCols').disabled=false;$('resetBtn').style.display='inline-flex';
+    hydrateColumnPicker(RAW.headers,ANALYSIS);
+    let notesHTML='';
+    if(ANALYSIS.piiHeaders.length){
+      notesHTML+=`<b>✓ Found ${ANALYSIS.piiHeaders.length} column(s) with private info:</b> `;
+      notesHTML+=ANALYSIS.piiHeaders.map(h=>`<span class="chip">${h}</span>`).join('');
     } else {
-      notesHTML += '<b>✓ Good news! No obvious private info detected in your column names.</b>';
+      notesHTML+='<b>✓ No obvious private info detected in column names.</b>';
     }
-    
-    if (ANALYSIS.alwaysDropHeaders.length) {
-      notesHTML += `<br><b>🔒 These columns will always be removed for safety (${ANALYSIS.alwaysDropHeaders.length}):</b> `;
-      notesHTML += ANALYSIS.alwaysDropHeaders.map(h=>`<span class="chip">${h}</span>`).join(' ');
+    if(ANALYSIS.alwaysDropHeaders.length){
+      notesHTML+=`<br><b>🔒 Auto-removed for safety (${ANALYSIS.alwaysDropHeaders.length}):</b> `;
+      notesHTML+=ANALYSIS.alwaysDropHeaders.map(h=>`<span class="chip">${h}</span>`).join('');
     }
-    
-    if (warnings.length > 0) {
-      notesHTML += `<br><span class="warning">${warnings.join('<br>')}</span>`;
-    }
-    
-    $('notes').innerHTML = notesHTML;
-    
-    showStats(RAW.rows.length, RAW.headers.length, FILE_SIZE);
-    renderTable(RAW.headers, RAW.rows, 'beforeTbl');
-    setStatus(`Perfect! Loaded ${RAW.rows.length.toLocaleString()} rows with ${RAW.headers.length} columns. Ready to preview! ✅`, STATUS_TYPE.SUCCESS);
-    
-  } catch(e) {
-    console.error('Load error:', e);
-    setStatus(`Oops! ${e.message}`, STATUS_TYPE.ERROR);
-    $('resetBtn').style.display = 'inline-block';
+    if(warnings.length) notesHTML+=`<br><span style="color:var(--warning)">${warnings.join('<br>')}</span>`;
+    $('notes').innerHTML=notesHTML?`<div class="notes-block">${notesHTML}</div>`:'';
+    showStats(RAW.rows.length,RAW.headers.length,FILE_SIZE);
+    renderTable(RAW.headers,RAW.rows,'beforeTbl');
+    setStatus(`Loaded ${RAW.rows.length.toLocaleString()} rows · ${RAW.headers.length} columns · Ready to preview`, STATUS_TYPE.SUCCESS);
+  } catch(e){
+    console.error(e);
+    setStatus(e.message, STATUS_TYPE.ERROR);
+    $('resetBtn').style.display='inline-flex';
   }
 });
 
 /* ===== Preview ===== */
-$('previewBtn').addEventListener('click', async ()=>{
+$('previewBtn').addEventListener('click',async()=>{
   try {
-    OPTIONS.mode = document.querySelector('input[name="mode"]:checked').value;
-    OPTIONS.hashIDs = $('hashIDs').checked;
-    OPTIONS.addPseudonymsOnExport = $('pseudonyms').checked;
-    OPTIONS.selectedDropHeaders = collectUserSelected();
-    
+    OPTIONS.mode=document.querySelector('input[name="mode"]:checked').value;
+    OPTIONS.hashIDs=$('hashIDs').checked;
+    OPTIONS.addPseudonymsOnExport=$('pseudonyms').checked;
+    OPTIONS.selectedDropHeaders=collectUserSelected();
     saveSettings();
-    
-    setLoading(true, 'Creating your preview…');
+    setLoading(true,'Building preview…');
     setSteps(1);
-    
-    const out = await transform(RAW.headers, RAW.rows, OPTIONS, ANALYSIS);
-    
-    if (!out.headers.length) {
-      setStatus('Uh oh! All columns would be removed with these settings. Try unchecking some boxes or choosing "Hide info" instead.', STATUS_TYPE.WARNING);
-      $('afterTbl').innerHTML = '<div class="muted">All columns would be removed with current settings. Please adjust your choices above!</div>';
+    const out=await transform(RAW.headers,RAW.rows,OPTIONS,ANALYSIS);
+    if(!out.headers.length){
+      setStatus('All columns would be removed. Try unchecking some or switching to "Mask" mode.', STATUS_TYPE.WARNING);
+      $('afterTbl').innerHTML='<div class="empty-state">All columns removed — adjust your settings above</div>';
       return;
     }
-    
-    renderTable(out.headers, out.rows, 'afterTbl');
-    
-    const removed = RAW.headers.length - out.headers.length;
-    const piiRemoved = OPTIONS.mode === 'drop' ? 
-      ANALYSIS.piiHeaders.filter(h => !out.headers.includes(h)).length : 0;
-    const userRemoved = OPTIONS.selectedDropHeaders.length;
-    const alwaysRemoved = ANALYSIS.alwaysDropHeaders.length;
-    
-    let statusMsg = `Looking good! Removed ${removed} column(s): `;
-    const parts = [];
-    if (alwaysRemoved > 0) parts.push(`${alwaysRemoved} for safety`);
-    if (piiRemoved > 0) parts.push(`${piiRemoved} private info`);
-    if (userRemoved > 0) parts.push(`${userRemoved} you selected`);
-    statusMsg += parts.join(', ') + '. Happy with it? Download below! ✨';
-    
-    setStatus(statusMsg, STATUS_TYPE.SUCCESS);
-    
-  } catch(e) {
-    console.error('Preview error:', e);
-    setStatus(`Hmm, something went wrong: ${e.message}`, STATUS_TYPE.ERROR);
+    renderTable(out.headers,out.rows,'afterTbl');
+    const removed=RAW.headers.length-out.headers.length;
+    const parts=[];
+    if(ANALYSIS.alwaysDropHeaders.length) parts.push(`${ANALYSIS.alwaysDropHeaders.length} auto-removed`);
+    if(OPTIONS.mode==='drop') parts.push(`${ANALYSIS.piiHeaders.filter(h=>!out.headers.includes(h)).length} private info`);
+    if(OPTIONS.selectedDropHeaders.length) parts.push(`${OPTIONS.selectedDropHeaders.length} you selected`);
+    setStatus(`Preview ready — removed ${removed} column(s): ${parts.join(', ')}. Looks good? Click Download!`, STATUS_TYPE.SUCCESS);
+  } catch(e){
+    console.error(e);setStatus(e.message, STATUS_TYPE.ERROR);
   }
 });
 
 /* ===== Export ===== */
-$('exportBtn').addEventListener('click', async ()=>{
+$('exportBtn').addEventListener('click',async()=>{
   try {
-    OPTIONS.mode = document.querySelector('input[name="mode"]:checked').value;
-    OPTIONS.hashIDs = $('hashIDs').checked;
-    OPTIONS.addPseudonymsOnExport = $('pseudonyms').checked;
-    OPTIONS.selectedDropHeaders = collectUserSelected();
-    
+    OPTIONS.mode=document.querySelector('input[name="mode"]:checked').value;
+    OPTIONS.hashIDs=$('hashIDs').checked;
+    OPTIONS.addPseudonymsOnExport=$('pseudonyms').checked;
+    OPTIONS.selectedDropHeaders=collectUserSelected();
     saveSettings();
-    
-    setLoading(true, 'Preparing your clean file…');
+    setLoading(true,'Preparing your clean file…');
     setSteps(2);
-    
-    const out = await transform(RAW.headers, RAW.rows, OPTIONS, ANALYSIS);
-    
-    if(!out.headers.length){
-      setStatus('Oops! No columns would be left. Please uncheck some columns or choose "Hide info" instead.', STATUS_TYPE.ERROR);
-      return;
-    }
-    
-    let headers = [...out.headers];
-    let rows = out.rows.map(r=>[...r]);
-    
+    const out=await transform(RAW.headers,RAW.rows,OPTIONS,ANALYSIS);
+    if(!out.headers.length){ setStatus('No columns left — uncheck some or switch to "Mask" mode.', STATUS_TYPE.ERROR); return; }
+    let headers=[...out.headers],rows=out.rows.map(r=>[...r]);
     if(OPTIONS.addPseudonymsOnExport){
-      const pseu = makePseudonyms(rows.length);
-      headers = ['Pseudonym', ...headers];
-      rows = rows.map((r,i)=>[pseu[i], ...r]);
+      const pseu=makePseudonyms(rows.length);
+      headers=['Pseudonym',...headers];rows=rows.map((r,i)=>[pseu[i],...r]);
     }
-    
-    PROCESSING_LOG = {
-      timestamp: new Date().toISOString(),
-      originalFile: ORIGINAL_BASENAME + '.csv',
-      cleanFile: `CLEAN_${ORIGINAL_BASENAME}.csv`,
-      sessionCode: SESSION_SALT,
-      whatWeStartedWith: {
-        rows: RAW.rows.length,
-        columns: RAW.headers.length,
-        fileSize: formatBytes(FILE_SIZE)
-      },
-      whatYouGot: {
-        rows: rows.length,
-        columns: headers.length
-      },
-      whatWeDid: {
-        removedOrHid: OPTIONS.mode === 'drop' ? 'Removed columns' : 'Hid info with ***',
-        scrambledIDs: OPTIONS.hashIDs ? 'Yes' : 'No',
-        addedPseudonyms: OPTIONS.addPseudonymsOnExport ? 'Yes' : 'No',
-        columnsRemoved: {
-          total: RAW.headers.length - out.headers.length,
-          autoRemoved: ANALYSIS.alwaysDropHeaders,
-          privateInfo: OPTIONS.mode === 'drop' ? 
-            ANALYSIS.piiHeaders.filter(h => !out.headers.includes(h)) : [],
-          youSelected: OPTIONS.selectedDropHeaders
+    PROCESSING_LOG={
+      timestamp:new Date().toISOString(),
+      originalFile:ORIGINAL_BASENAME+'.csv',cleanFile:`CLEAN_${ORIGINAL_BASENAME}.csv`,
+      sessionCode:SESSION_SALT,
+      original:{rows:RAW.rows.length,columns:RAW.headers.length,fileSize:formatBytes(FILE_SIZE)},
+      cleaned:{rows:rows.length,columns:headers.length},
+      actions:{
+        mode:OPTIONS.mode==='drop'?'Removed columns':'Masked with ***',
+        scrambledIDs:OPTIONS.hashIDs?'Yes':'No',
+        addedPseudonyms:OPTIONS.addPseudonymsOnExport?'Yes':'No',
+        columnsRemoved:{
+          total:RAW.headers.length-out.headers.length,
+          autoRemoved:ANALYSIS.alwaysDropHeaders,
+          privateInfo:OPTIONS.mode==='drop'?ANALYSIS.piiHeaders.filter(h=>!out.headers.includes(h)):[],
+          userSelected:OPTIONS.selectedDropHeaders
         }
       }
     };
-    
-    const csv = toCSV([headers, ...rows]);
-    const filename = `CLEAN_${ORIGINAL_BASENAME}.csv`;
-    download(filename, csv);
-    
-    const logFilename = `CLEAN_${ORIGINAL_BASENAME}_log.json`;
-    downloadJSON(logFilename, PROCESSING_LOG);
-    
-    const summary = `
-      <div class="card" style="border-color:var(--ok);border-width:2px">
-        <h3 style="margin:0 0 10px;color:var(--ok)">🎉 Success! Your files are downloading now</h3>
-        <p><b>You'll get two files:</b></p>
-        <ul style="margin:8px 0;line-height:1.8">
-          <li>📊 <code>${filename}</code> — Your clean, safe-to-share data (${rows.length.toLocaleString()} rows, ${headers.length} columns)</li>
-          <li>📋 <code>${logFilename}</code> — A record of what changed (keep this for your records)</li>
+    const filename=`CLEAN_${ORIGINAL_BASENAME}.csv`,logFilename=`CLEAN_${ORIGINAL_BASENAME}_log.json`;
+    download(filename,toCSV([headers,...rows]));
+    downloadJSON(logFilename,PROCESSING_LOG);
+    const removedTotal=RAW.headers.length-out.headers.length;
+    $('exportSummary').innerHTML=`
+      <div class="success-banner">
+        <h3>🎉 Files downloading now</h3>
+        <ul>
+          <li>📊 <code>${filename}</code> — ${rows.length.toLocaleString()} rows, ${headers.length} columns</li>
+          <li>📋 <code>${logFilename}</code> — change log for your records</li>
         </ul>
-        <div class="friendly-note">
-          <b>What we removed:</b> ${RAW.headers.length - out.headers.length} column(s) total —
-          ${ANALYSIS.alwaysDropHeaders.length} auto-removed for safety,
-          ${OPTIONS.mode === 'drop' ? ANALYSIS.piiHeaders.filter(h => !out.headers.includes(h)).length : 0} private info columns,
-          ${OPTIONS.selectedDropHeaders.length} you picked
-          ${OPTIONS.hashIDs ? ' | Student IDs scrambled ✓' : ''}
-          ${OPTIONS.addPseudonymsOnExport ? ' | Fun pseudonyms added ✓' : ''}
+        <div class="notes-block" style="margin-top:12px;background:rgba(16,185,129,0.07);border-color:var(--ok)">
+          <b>What changed:</b> Removed ${removedTotal} column(s) total
+          ${ANALYSIS.alwaysDropHeaders.length?` · ${ANALYSIS.alwaysDropHeaders.length} auto-removed`:''}
+          ${OPTIONS.mode==='drop'?` · ${ANALYSIS.piiHeaders.filter(h=>!out.headers.includes(h)).length} private info`:''}
+          ${OPTIONS.selectedDropHeaders.length?` · ${OPTIONS.selectedDropHeaders.length} you selected`:''}
+          ${OPTIONS.hashIDs?' · IDs scrambled ✓':''}
+          ${OPTIONS.addPseudonymsOnExport?' · Pseudonyms added ✓':''}
         </div>
-        <p class="muted" style="margin-top:10px">
-          <b>📝 Remember:</b> Always review your cleaned data before sharing it. This tool helps a lot, but you're the final quality check! If you're sharing this outside your school, double-check with your data coordinator.
-        </p>
-      </div>
-    `;
-    $('exportSummary').innerHTML = summary;
-    
-    setStatus(`All done! Check your downloads folder for <b>${filename}</b> 🎊`, STATUS_TYPE.SUCCESS);
-    
-  } catch(e) {
-    console.error('Export error:', e);
-    setStatus(`Oops, something went wrong: ${e.message}`, STATUS_TYPE.ERROR);
+        <p style="font-size:13px;color:var(--muted);margin-top:12px">📝 Always review your cleaned data before sharing. You're the final quality check!</p>
+      </div>`;
+    setStatus(`Done! Check your downloads folder for <b>${filename}</b>`, STATUS_TYPE.SUCCESS);
+  } catch(e){
+    console.error(e);setStatus(e.message, STATUS_TYPE.ERROR);
   }
 });
 
 /* ===== Column Selection Helpers ===== */
-$('selAll').addEventListener('click', ()=>{
-  document.querySelectorAll('#colSelect input[type="checkbox"]').forEach(cb=>{ 
-    if(!cb.disabled) cb.checked=true; 
-  });
-});
-
-$('selNone').addEventListener('click', ()=>{
-  document.querySelectorAll('#colSelect input[type="checkbox"]').forEach(cb=>{ 
-    if(!cb.disabled) cb.checked=false; 
-  });
-});
-
-$('selPII').addEventListener('click', ()=>{
+$('selAll').addEventListener('click',()=>{ document.querySelectorAll('#colSelect input[type="checkbox"]').forEach(cb=>{ if(!cb.disabled) cb.checked=true; }); });
+$('selNone').addEventListener('click',()=>{ document.querySelectorAll('#colSelect input[type="checkbox"]').forEach(cb=>{ if(!cb.disabled) cb.checked=false; }); });
+$('selPII').addEventListener('click',()=>{
   document.querySelectorAll('#colSelect .col-row').forEach(row=>{
-    const name=row.querySelector('.col-name')?.textContent||'';
-    const isPII=ANALYSIS.piiHeaders.includes(name);
-    const cb=row.querySelector('input[type="checkbox"]');
-    if(cb && !cb.disabled) cb.checked=!!isPII;
+    const n=row.querySelector('.col-name')?.textContent||'',isPII=ANALYSIS.piiHeaders.includes(n),cb=row.querySelector('input[type="checkbox"]');
+    if(cb&&!cb.disabled) cb.checked=!!isPII;
   });
 });
-
-$('selNonPII').addEventListener('click', ()=>{
+$('selNonPII').addEventListener('click',()=>{
   document.querySelectorAll('#colSelect .col-row').forEach(row=>{
-    const name=row.querySelector('.col-name')?.textContent||'';
-    const isPII=ANALYSIS.piiHeaders.includes(name);
-    const cb=row.querySelector('input[type="checkbox"]');
-    if(cb && !cb.disabled) cb.checked=!isPII;
+    const n=row.querySelector('.col-name')?.textContent||'',isPII=ANALYSIS.piiHeaders.includes(n),cb=row.querySelector('input[type="checkbox"]');
+    if(cb&&!cb.disabled) cb.checked=!isPII;
   });
 });
+$('searchCols').addEventListener('input',filterColumns);
 
-$('searchCols').addEventListener('input', filterColumns);
-
-/* ===== Initial State ===== */
+/* ===== Init ===== */
 setSteps(0);
 $('bar').style.width='33%';
 </script>
