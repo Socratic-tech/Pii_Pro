@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Student Data Helper — Privacy Review</title>
+<style>
+  :root {
+    --brand:#0e9aa7; --brand-2:#14b8c4; --brand-glow:rgba(14,154,167,.18); --brand-subtle:rgba(14,154,167,.08);
+    --border:#dbe3ec; --border-subtle:#eef2f7; --muted:#64748b; --ok:#0f9f6e; --ok-subtle:rgba(15,159,110,.1);
+    --bad:#dc2626; --bad-subtle:rgba(220,38,38,.09); --warning:#d97706; --warning-subtle:rgba(217,119,6,.10);
+    --ink:#0f172a; --ink-2:#334155; --bg:#f7f9fc; --bg-2:#f0f4f8; --card:#fff; --chip:#f1f5f9;
+    --shadow-sm:0 1px 3px rgba(15,23,42,.08),0 1px 2px rgba(15,23,42,.04); --shadow:0 6px 24px rgba(15,23,42,.08);
+    --radius:14px; --radius-sm:9px; --font:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+  }
+  [data-theme="dark"] {
+    --brand:#2dd4bf; --brand-2:#22d3ee; --brand-glow:rgba(45,212,191,.16); --brand-subtle:rgba(45,212,191,.08);
+    --border:#24344d; --border-subtle:#19283c; --muted:#9aabc0; --ok:#34d399; --ok-subtle:rgba(52,211,153,.11);
+    --bad:#fb7185; --bad-subtle:rgba(251,113,133,.10); --warning:#fbbf24; --warning-subtle:rgba(251,191,36,.11);
+    --ink:#e6edf7; --ink-2:#cbd5e1; --bg:#081321; --bg-2:#0d1b2d; --card:#0b1728; --chip:#102137;
+    --shadow-sm:0 1px 3px rgba(0,0,0,.35); --shadow:0 8px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box} html,body{margin:0;min-height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  button,input,select{font:inherit} button{cursor:pointer} button:disabled,input:disabled,select:disabled{cursor:not-allowed;opacity:.5}
+  :focus-visible{outline:3px solid var(--brand);outline-offset:2px;border-radius:5px}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  .shell{max-width:1120px;margin:0 auto;padding:0 24px 72px}
+  .header{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;padding:28px 0 22px;border-bottom:1px solid var(--border);margin-bottom:22px}
+  .header-left{display:flex;align-items:center;gap:15px}.logo{width:48px;height:48px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(135deg,var(--brand),var(--brand-2));font-size:23px;box-shadow:0 3px 14px var(--brand-glow)}
+  h1{font-size:21px;line-height:1.2;margin:0 0 3px;letter-spacing:-.35px}.tagline{font-size:13px;color:var(--muted)}
+  .header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.theme-toggle{display:flex;border:1px solid var(--border);background:var(--bg-2);border-radius:999px;padding:3px}.theme-toggle button{border:0;background:transparent;color:var(--muted);padding:5px 11px;border-radius:999px;font-size:12px}.theme-toggle button.active{background:var(--card);color:var(--ink);box-shadow:var(--shadow-sm)}
+  .privacy-strip{display:flex;align-items:flex-start;gap:10px;padding:13px 15px;border:1px solid var(--ok);background:var(--ok-subtle);border-radius:var(--radius-sm);margin-bottom:22px}.privacy-strip strong{display:block;color:var(--ok);margin-bottom:2px}.privacy-strip span{font-size:13px;color:var(--ink-2)}
+  .stepper{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 16px}.step{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:13px;font-weight:650}.step-num{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--border);background:var(--bg-2);font-size:12px;font-weight:800}.step.active{color:var(--brand)}.step.active .step-num{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 0 0 4px var(--brand-glow)}.step.done{color:var(--ok)}.step.done .step-num{border-color:var(--ok);background:var(--ok-subtle);color:var(--ok)}
+  .progress{height:4px;background:var(--border);border-radius:999px;overflow:hidden;margin-bottom:24px}.progress>div{height:100%;width:33%;background:linear-gradient(90deg,var(--brand),var(--brand-2));transition:width .25s}
+  .card,.drop-zone,.preview-panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm)}.card{padding:20px 22px;margin-bottom:16px}.card-title{font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.45px;margin-bottom:12px}.muted{color:var(--muted)}
+  .intro-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.intro-step{padding:14px;background:var(--bg-2);border:1px solid var(--border-subtle);border-radius:var(--radius-sm)}.intro-step strong{display:block;margin-bottom:4px}.intro-step p{font-size:13px;color:var(--muted);margin:0}
+  .callout{padding:12px 14px;border-radius:var(--radius-sm);font-size:13px;margin-top:14px}.callout.warning{background:var(--warning-subtle);border:1px solid var(--warning)}.callout.info{background:var(--brand-subtle);border:1px solid var(--brand)}
+  .drop-zone{padding:22px;margin-bottom:16px;border-style:dashed;border-width:2px}.drop-zone.drag-over{border-color:var(--brand);background:var(--brand-subtle);box-shadow:0 0 0 4px var(--brand-glow)}
+  .file-row,.action-row,.inline-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.file-row{margin-bottom:16px}.action-row{padding-top:14px;border-top:1px solid var(--border);margin-top:15px}.spacer{flex:1}
+  input[type=file]{font-size:13px;color:var(--ink)}input[type=file]::file-selector-button,.btn{border:1px solid var(--border);background:var(--card);color:var(--ink);padding:8px 14px;border-radius:var(--radius-sm);font-weight:650}.btn:hover:not(:disabled),input[type=file]::file-selector-button:hover{background:var(--bg-2)}.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 2px 10px var(--brand-glow)}.btn.primary:hover:not(:disabled){background:var(--brand-2);border-color:var(--brand-2)}.btn.danger{color:var(--bad);border-color:var(--bad)}.btn.ghost{background:transparent;border-color:transparent;color:var(--muted)}.btn.sm{padding:6px 10px;font-size:12px}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}.stat{padding:12px 14px;text-align:center;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-sm)}.stat-val{font-size:24px;font-weight:800;color:var(--brand)}.stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.55px}
+  fieldset{border:0;padding:0;margin:0 0 16px}.legend{display:block;font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.45px;margin-bottom:8px}.purpose-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.purpose-card{display:flex;gap:9px;align-items:flex-start;padding:13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--card);cursor:pointer}.purpose-card:has(input:checked){border-color:var(--brand);background:var(--brand-subtle);box-shadow:0 0 0 3px var(--brand-glow)}.purpose-card input{margin-top:4px;accent-color:var(--brand)}.purpose-title{font-weight:750;font-size:14px}.purpose-desc{font-size:12px;color:var(--muted);margin-top:2px}
+  .review-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}.risk-box{border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;background:var(--bg-2)}.risk-box strong{font-size:21px;display:block}.risk-box small{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.45px}.risk-high strong{color:var(--bad)}.risk-review strong{color:var(--warning)}.risk-free strong{color:var(--warning)}.risk-ok strong{color:var(--ok)}
+  .column-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}.search{flex:1;min-width:220px;padding:8px 11px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--card);color:var(--ink)}
+  .column-list{border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}.col-head,.col-row{display:grid;grid-template-columns:minmax(180px,1.4fr) minmax(170px,1fr) 150px;gap:10px;align-items:center;padding:10px 12px}.col-head{background:var(--bg-2);font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.45px}.col-row{border-top:1px solid var(--border-subtle)}.col-row:first-of-type{border-top:0}.col-name{font-family:var(--mono);font-size:12px;overflow-wrap:anywhere}.badges{display:flex;gap:5px;flex-wrap:wrap}.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:999px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.35px;border:1px solid}.badge.high{color:var(--bad);background:var(--bad-subtle);border-color:var(--bad)}.badge.review{color:var(--warning);background:var(--warning-subtle);border-color:var(--warning)}.badge.free{color:var(--warning);background:var(--warning-subtle);border-color:var(--warning)}.badge.value{color:var(--brand);background:var(--brand-subtle);border-color:var(--brand)}.badge.formula{color:var(--bad);background:var(--bad-subtle);border-color:var(--bad)}.badge.none{color:var(--muted);background:var(--chip);border-color:var(--border)}
+  .action-select{width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:7px;background:var(--card);color:var(--ink);font-size:12px}
+  .alias-box{padding:13px 14px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-sm);margin-top:12px}.alias-box label{font-size:13px;font-weight:700}.alias-box select{margin-left:8px;padding:6px 8px;border:1px solid var(--border);border-radius:7px;background:var(--card);color:var(--ink)}
+  .status{display:flex;gap:9px;align-items:flex-start;padding:11px 14px;border-radius:var(--radius-sm);border:1px solid transparent;margin:10px 0;font-size:13px}.status:empty{display:none}.status.info{background:var(--bg-2);border-color:var(--border);color:var(--muted)}.status.ok{background:var(--ok-subtle);border-color:var(--ok);color:var(--ok)}.status.warning{background:var(--warning-subtle);border-color:var(--warning);color:var(--warning)}.status.bad{background:var(--bad-subtle);border-color:var(--bad);color:var(--bad)}
+  .preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}.preview-panel{overflow:hidden}.preview-header{padding:12px 15px;background:var(--bg-2);border-bottom:1px solid var(--border);font-size:13px;font-weight:750}.preview-body{padding:10px;overflow:auto;max-height:360px}.empty{color:var(--muted);padding:18px;text-align:center;font-size:13px}
+  table{border-collapse:collapse;width:100%;font-size:11px}th,td{padding:7px 9px;border-bottom:1px solid var(--border-subtle);white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis}th{position:sticky;top:0;background:var(--bg-2);color:var(--muted);text-align:left;text-transform:uppercase;font-size:10px;letter-spacing:.35px}td{font-family:var(--mono);color:var(--ink-2)}.changed{background:var(--brand-subtle)}
+  .verify-card{display:none}.verify-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}.verify-item{padding:12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-2)}.verify-item strong{display:block;font-size:18px}.verify-item span{font-size:11px;color:var(--muted)}
+  .review-check{display:flex;gap:9px;align-items:flex-start;margin-top:12px;padding:12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-2)}.review-check input{margin-top:4px;accent-color:var(--brand)}
+  .success{padding:18px 20px;border:1.5px solid var(--ok);background:var(--ok-subtle);border-radius:var(--radius);margin:16px 0}.success h3{margin:0 0 8px;color:var(--ok)}.success p{margin:5px 0;font-size:13px}.success code{font-family:var(--mono);font-size:12px}
+  .version{position:fixed;right:12px;bottom:10px;color:var(--muted);font:10px var(--mono);opacity:.6}
+  @media(max-width:820px){.intro-grid,.purpose-grid,.stats,.review-summary,.verify-grid{grid-template-columns:1fr 1fr}.preview-grid{grid-template-columns:1fr}.col-head{display:none}.col-row{grid-template-columns:1fr}.step span:last-child{display:none}}
+  @media(max-width:520px){.shell{padding:0 14px 64px}.intro-grid,.purpose-grid,.stats,.review-summary,.verify-grid{grid-template-columns:1fr}.header{align-items:flex-start}.privacy-strip{font-size:13px}.file-row{align-items:stretch}.file-row>*{width:100%}.btn{justify-content:center}.alias-box select{display:block;margin:8px 0 0;width:100%}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="header">
+    <div class="header-left">
+      <div class="logo" aria-hidden="true">🛡️</div>
+      <div><h1>Student Data Helper</h1><div class="tagline">Prepare student data for analysis or sharing without sending it to a server.</div></div>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle" role="group" aria-label="Color theme">
+        <button id="btnLight" type="button" aria-pressed="false">Light</button>
+        <button id="btnAuto" type="button" class="active" aria-pressed="true">Auto</button>
+        <button id="btnDark" type="button" aria-pressed="false">Dark</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="privacy-strip">
+    <div aria-hidden="true">🔒</div>
+    <div><strong>Processed locally on this device</strong><span>Your spreadsheet stays in this browser. Student data is not uploaded by this page. No external fonts, analytics, trackers, or server calls are used.</span></div>
+  </div>
+
+  <nav class="stepper" aria-label="Progress">
+    <div class="step active" id="step0" aria-current="step"><span class="step-num">1</span><span>Add file</span></div>
+    <div class="step" id="step1"><span class="step-num">2</span><span>Privacy review</span></div>
+    <div class="step" id="step2"><span class="step-num">3</span><span>Verify &amp; download</span></div>
+  </nav>
+  <div class="progress" id="progressTrack" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="33"><div id="bar"></div></div>
+
+  <section class="card" id="welcomeCard">
+    <div class="card-title">How it works</div>
+    <div class="intro-grid">
+      <div class="intro-step"><strong>1. Add spreadsheet</strong><p>Upload a CSV. The page checks column names and samples values for common privacy risks.</p></div>
+      <div class="intro-step"><strong>2. Review identifiers</strong><p>Direct identifiers are flagged, possible identifiers are marked for review, and free-text fields get extra attention.</p></div>
+      <div class="intro-step"><strong>3. Verify the result</strong><p>Compare before and after, confirm the remaining fields, then download your cleaned copy.</p></div>
+    </div>
+    <div class="callout warning"><strong>Important:</strong> This helper can detect common risks, but it cannot determine that a dataset is FERPA-compliant or safe for every use. You are still the final reviewer and should follow your district's policies.</div>
+  </section>
+
+  <section class="drop-zone" id="dropZone" role="region" aria-label="CSV upload and privacy settings">
+    <div class="file-row">
+      <input type="file" id="file" accept=".csv,text/csv" aria-label="Choose a CSV file" />
+      <button class="btn primary" id="loadBtn" type="button">Load &amp; scan file</button>
+      <button class="btn danger" id="resetBtn" type="button" style="display:none">↩ Start over</button>
+    </div>
+
+    <div id="statsWrap" style="display:none">
+      <div class="stats">
+        <div class="stat"><div class="stat-val" id="statRows">0</div><div class="stat-lbl">Records</div></div>
+        <div class="stat"><div class="stat-val" id="statCols">0</div><div class="stat-lbl">Columns</div></div>
+        <div class="stat"><div class="stat-val" id="statSize">—</div><div class="stat-lbl">File size</div></div>
+        <div class="stat"><div class="stat-val" id="statIssues">0</div><div class="stat-lbl">Review flags</div></div>
+      </div>
+
+      <fieldset>
+        <legend class="legend">What are you preparing this data for?</legend>
+        <div class="purpose-grid">
+          <label class="purpose-card"><input type="radio" name="purpose" value="ai" checked><div><div class="purpose-title">AI or external tool</div><div class="purpose-desc">Most cautious defaults. Direct identifiers are removed and contextual fields are reviewed aggressively.</div></div></label>
+          <label class="purpose-card"><input type="radio" name="purpose" value="public"><div><div class="purpose-title">Public / external sharing</div><div class="purpose-desc">Maximum de-identification. Direct identifiers are removed and possible identifiers default to removal.</div></div></label>
+          <label class="purpose-card"><input type="radio" name="purpose" value="internal"><div><div class="purpose-title">Internal analysis</div><div class="purpose-desc">Direct identifiers are removed, while contextual fields stay available for your review.</div></div></label>
+        </div>
+      </fieldset>
+
+      <div id="riskSummary"></div>
+
+      <div class="card-title" style="margin-top:18px">Column privacy review</div>
+      <div class="column-tools">
+        <input id="searchCols" class="search" type="search" placeholder="Search columns…" aria-label="Search columns" />
+        <button class="btn sm" id="removeFlagged" type="button">Remove flagged</button>
+        <button class="btn sm" id="keepUnflagged" type="button">Keep unflagged</button>
+        <button class="btn sm" id="resetActions" type="button">Reset recommended</button>
+      </div>
+      <div class="column-list" id="columnList" aria-live="polite"></div>
+
+      <div class="alias-box">
+        <label><input type="checkbox" id="aliases"> Add consistent student aliases</label>
+        <span class="muted" style="font-size:12px"> — e.g. “Solar Otter #4”. Same source value = same alias within this export.</span>
+        <div id="aliasSourceWrap" style="display:none;margin-top:8px">
+          <label for="aliasSource">Alias source:</label><select id="aliasSource"></select>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="btn primary" id="previewBtn" type="button">👀 Build privacy preview</button>
+        <div class="spacer"></div>
+        <span class="muted" style="font-size:12px">Formula-like cells are neutralized automatically in the downloaded CSV.</span>
+      </div>
+    </div>
+  </section>
+
+  <div id="statusBar" class="status info" role="status" aria-live="polite"></div>
+
+  <section class="card verify-card" id="verifyCard">
+    <div class="card-title">Privacy review result</div>
+    <div id="verifySummary"></div>
+    <div class="review-check">
+      <input type="checkbox" id="reviewed">
+      <label for="reviewed"><strong>I reviewed the cleaned preview and the remaining columns.</strong><br><span class="muted">This confirms only that you reviewed the result. It is not a FERPA-compliance certification.</span></label>
+    </div>
+    <div class="action-row">
+      <button class="btn primary" id="exportBtn" type="button" disabled>⬇️ Download clean CSV</button>
+      <button class="btn" id="reportBtn" type="button" disabled>📋 Download processing report</button>
+    </div>
+  </section>
+
+  <section class="preview-grid">
+    <div class="preview-panel" role="region" aria-label="Original data preview"><div class="preview-header">Original data <span class="muted">(first 5 rows)</span></div><div class="preview-body" id="beforeTbl"><div class="empty">Your original data will appear here after loading a file.</div></div></div>
+    <div class="preview-panel" role="region" aria-label="Cleaned data preview"><div class="preview-header">Cleaned data <span class="muted">(first 5 rows)</span></div><div class="preview-body" id="afterTbl"><div class="empty">Build a privacy preview to see the cleaned result.</div></div></div>
+  </section>
+
+  <div id="exportSummary"></div>
+</div>
+<div class="version">v4.0 · Student Data Helper</div>
+
+<script>
+'use strict';
+
+const CONFIG = {
+  PREVIEW_ROWS: 5,
+  VALUE_SAMPLE_ROWS: 300,
+  MAX_FILE_SIZE_MB: 50,
+  DIRECT_RULES: [
+    {type:'name', label:'Name', patterns:[/^name$/,/^student name$/,/^full name$/,/^first name$/,/^last name$/,/^middle name$/,/^firstname$/,/^lastname$/,/^studentname$/,/^preferred name$/,/^legal name$/]},
+    {type:'id', label:'Student ID', patterns:[/^student id$/,/^studentid$/,/^student number$/,/^studentnumber$/,/^sis id$/,/^sisid$/,/^sid$/,/^id number$/,/^id #$/,/^state id$/,/^district id$/,/^uid$/,/^uic$/,/^upn$/,/^upi$/,/^unique identification code$/]},
+    {type:'email', label:'Email', patterns:[/^email$/,/^e-mail$/,/^student email$/,/^email address$/,/^parent email$/,/^guardian email$/]},
+    {type:'phone', label:'Phone', patterns:[/^phone$/,/^phone number$/,/^student phone$/,/^cell$/,/^mobile$/,/^mobile phone$/,/^parent phone$/,/^guardian phone$/]},
+    {type:'address', label:'Street address', patterns:[/^address$/,/^street address$/,/^home address$/,/^mailing address$/,/^address 1$/,/^address1$/,/^address 2$/,/^address2$/]},
+    {type:'dob', label:'Date of birth', patterns:[/^dob$/,/^date of birth$/,/^birth date$/,/^birthdate$/,/^birthday$/]},
+    {type:'ssn', label:'SSN', patterns:[/^ssn$/,/^social security$/,/^social security number$/]},
+    {type:'credential', label:'Credential / license', patterns:[/^driver'?s? license$/,/^license number$/,/^credential$/]}
+  ],
+  REVIEW_RULES: [
+    {type:'guardian', label:'Parent / guardian', patterns:[/parent/,/guardian/,/emergency contact/]},
+    {type:'location', label:'Location', patterns:[/^city$/,/^state$/,/^zip$/,/^zipcode$/,/^zip code$/,/^postal code$/,/^county$/,/^neighborhood$/]},
+    {type:'school', label:'School context', patterns:[/^school$/,/school name/,/building/,/campus/,/teacher/,/instructor/,/counselor/,/homeroom/,/advisor/]},
+    {type:'operations', label:'Operational identifier', patterns:[/bus/,/locker/,/route/,/room number/,/room #/]},
+    {type:'demographic', label:'Demographic / program', patterns:[/gender/,/sex/,/race/,/ethnicity/,/language/,/ell/,/lep/,/disability/,/iep/,/504/,/special education/,/free.*reduced/,/meal status/,/migrant/,/homeless/,/foster/]},
+    {type:'academic', label:'Academic context', patterns:[/grade level/,/^grade$/,/class period/,/course/,/section/,/cohort/]}
+  ],
+  FREE_TEXT_PATTERNS: [/note/,/comment/,/remark/,/description/,/narrative/,/observation/,/behavior/,/incident/,/reason/,/intervention/,/accommodation/,/goal/,/medical/,/health/,/discipline/],
+  ADJECTIVES:['Swift','Lucky','Solar','Pixel','Crimson','Mellow','Turbo','Cosmic','Neon','Brave','Clever','Frosty','Sunny','Midnight','Copper','Indigo','Pepper','Atomic','Maple','Silver','Golden','Rocket','Sparky','Thunder','Breezy','Echo','Nova','Lunar','Stellar','Emerald','Ruby','Azure','Onyx'],
+  NOUNS:['Otter','Falcon','Badger','Lynx','Raven','Turtle','Coyote','Panda','Fox','Hawk','Wolf','Koala','Dolphin','Moose','Wolverine','Eagle','Bison','Heron','Meteor','Comet','Ember','Voyager','Beacon','Canyon','River','Summit','Valley','Ridge','Trail','Peak','Forest','Meadow']
+};
+
+const $ = id => document.getElementById(id);
+let RAW={headers:[],rows:[]};
+let ANALYSIS={columns:[],warnings:[],malformedRows:0};
+let CURRENT_OUTPUT=null;
+let CURRENT_REPORT=null;
+let FILE_SIZE=0;
+let ORIGINAL_BASENAME='data';
+let SESSION_SALT=randomHex(16);
+
+function normalizeHeader(v){return String(v??'').replace(/^\uFEFF/,'').trim().toLowerCase().replace(/[_-]+/g,' ').replace(/\s+/g,' ')}
+function randomHex(bytes=16){const a=new Uint8Array(bytes);crypto.getRandomValues(a);return [...a].map(x=>x.toString(16).padStart(2,'0')).join('')}
+function formatBytes(bytes){if(!bytes)return'0 B';const k=1024,s=['B','KB','MB','GB'];const i=Math.min(Math.floor(Math.log(bytes)/Math.log(k)),s.length-1);return `${(bytes/Math.pow(k,i)).toFixed(i?1:0)} ${s[i]}`}
+function escapeCSVFormula(value){const s=value==null?'':String(value);return /^[\t\r ]*[=+\-@]/.test(s)?"'"+s:s}
+function status(message,type='info'){const bar=$('statusBar');bar.className=`status ${type}`;bar.textContent=message}
+function setStep(i){['step0','step1','step2'].forEach((id,n)=>{const el=$(id);el.classList.toggle('active',n===i);el.classList.toggle('done',n<i);if(n===i)el.setAttribute('aria-current','step');else el.removeAttribute('aria-current')});const pct=[33,66,100][i];$('bar').style.width=pct+'%';$('progressTrack').setAttribute('aria-valuenow',String(pct))}
+
+(function initTheme(){
+  const saved=localStorage.getItem('sdh_theme')||'auto';
+  function apply(mode){localStorage.setItem('sdh_theme',mode);const dark=mode==='dark'||(mode==='auto'&&matchMedia('(prefers-color-scheme:dark)').matches);document.documentElement.setAttribute('data-theme',dark?'dark':'light');[['btnLight','light'],['btnAuto','auto'],['btnDark','dark']].forEach(([id,v])=>{$(id).classList.toggle('active',mode===v);$(id).setAttribute('aria-pressed',String(mode===v))})}
+  $('btnLight').onclick=()=>apply('light');$('btnAuto').onclick=()=>apply('auto');$('btnDark').onclick=()=>apply('dark');apply(saved);
+})();
+
+function parseCSV(text){
+  text=String(text??'').replace(/^\uFEFF/,'');
+  const rows=[];let row=[],cur='',inQ=false,i=0,malformedQuotes=false;
+  while(i<text.length){
+    const ch=text[i];
+    if(inQ){if(ch==='"'){if(text[i+1]==='"'){cur+='"';i++}else inQ=false}else cur+=ch}
+    else{if(ch==='"')inQ=true;else if(ch===','){row.push(cur);cur=''}else if(ch==='\n'){row.push(cur);rows.push(row);row=[];cur=''}else if(ch!=='\r')cur+=ch}
+    i++;
+  }
+  if(inQ)malformedQuotes=true;
+  row.push(cur);rows.push(row);
+  while(rows.length&&rows[rows.length-1].every(v=>String(v).trim()===''))rows.pop();
+  return {rows,malformedQuotes};
+}
+function toCSV(rows){const esc=v=>{let s=v==null?'':String(v);s=escapeCSVFormula(s);return /[",\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};return rows.map(r=>r.map(esc).join(',')).join('\r\n')}
+
+function matchesAny(value,patterns){return patterns.some(re=>re.test(value))}
+function classifyHeader(header){
+  const h=normalizeHeader(header);
+  for(const rule of CONFIG.DIRECT_RULES)if(matchesAny(h,rule.patterns))return {level:'high',type:rule.type,label:rule.label};
+  const isFree=matchesAny(h,CONFIG.FREE_TEXT_PATTERNS);
+  for(const rule of CONFIG.REVIEW_RULES)if(matchesAny(h,rule.patterns))return {level:isFree?'free':'review',type:rule.type,label:isFree?'Free text / '+rule.label:rule.label};
+  if(isFree)return {level:'free',type:'freeText',label:'Free-text field'};
+  return {level:'none',type:'other',label:'No header match'};
+}
+function detectValueKinds(values){
+  const stats={email:0,phone:0,ssn:0,dob:0,address:0,longId:0,formula:0,nonblank:0,longText:0};
+  for(const raw of values){
+    const s=String(raw??'').trim();if(!s)continue;stats.nonblank++;
+    if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s))stats.email++;
+    if(/^(?:\+?1[ .-]?)?(?:\(?\d{3}\)?[ .-]?)\d{3}[ .-]?\d{4}$/.test(s))stats.phone++;
+    if(/^\d{3}-?\d{2}-?\d{4}$/.test(s))stats.ssn++;
+    if(/^(?:\d{1,2}[\/-]){2}\d{2,4}$/.test(s))stats.dob++;
+    if(/^\d{1,6}\s+[A-Za-z0-9.' -]+\s(?:st|street|rd|road|ave|avenue|blvd|drive|dr|lane|ln|court|ct|way|parkway|pkwy)\b/i.test(s))stats.address++;
+    if(/^\d{7,16}$/.test(s))stats.longId++;
+    if(/^[=+\-@]/.test(s))stats.formula++;
+    if(s.length>80&&/\s/.test(s))stats.longText++;
+  }
+  const n=Math.max(stats.nonblank,1);const kinds=[];
+  const add=(key,label,threshold=.35)=>{if(stats[key]/n>=threshold)kinds.push({key,label,count:stats[key]})};
+  add('email','email-like values',.25);add('phone','phone-like values',.25);add('ssn','SSN-like values',.15);add('address','address-like values',.20);add('longId','identifier-like numbers',.45);add('longText','long free text',.35);
+  if(stats.formula)kinds.push({key:'formula',label:'formula-like cells',count:stats.formula});
+  return {stats,kinds};
+}
+function recommendedAction(col,purpose){
+  if(col.level==='high')return 'remove';
+  if(col.level==='free')return purpose==='internal'?'keep':'remove';
+  if(col.level==='review')return purpose==='internal'?'keep':'remove';
+  if(col.valueKinds.some(k=>['email','phone','ssn','address','longId'].includes(k.key)))return 'remove';
+  return 'keep';
+}
+function analyzeData(){
+  const headers=RAW.headers;const cols=[];const sample=RAW.rows.slice(0,CONFIG.VALUE_SAMPLE_ROWS);
+  headers.forEach((header,index)=>{
+    const cls=classifyHeader(header);const values=sample.map(r=>r[index]??'');const vd=detectValueKinds(values);
+    let level=cls.level,type=cls.type,label=cls.label;
+    if(level==='none'&&vd.kinds.some(k=>['email','phone','ssn','address','longId'].includes(k.key))){level='review';type='valuePattern';label='Sensitive value pattern'}
+    if(level==='none'&&vd.kinds.some(k=>k.key==='longText')){level='free';type='freeText';label='Likely free text'}
+    cols.push({index,header:String(header??''),normalized:normalizeHeader(header),level,type,label,valueKinds:vd.kinds,formulaCount:vd.stats.formula,action:'keep'});
+  });
+  ANALYSIS.columns=cols;
+}
+function applyRecommendedActions(){const purpose=document.querySelector('input[name="purpose"]:checked')?.value||'ai';ANALYSIS.columns.forEach(c=>c.action=recommendedAction(c,purpose));renderColumns();renderRiskSummary()}
+
+function createBadge(text,cls){const b=document.createElement('span');b.className=`badge ${cls}`;b.textContent=text;return b}
+function renderRiskSummary(){
+  const high=ANALYSIS.columns.filter(c=>c.level==='high').length;
+  const review=ANALYSIS.columns.filter(c=>c.level==='review').length;
+  const free=ANALYSIS.columns.filter(c=>c.level==='free').length;
+  const formulas=ANALYSIS.columns.reduce((n,c)=>n+c.formulaCount,0);
+  $('statIssues').textContent=high+review+free;
+  const wrap=$('riskSummary');wrap.replaceChildren();
+  const box=document.createElement('div');box.className='review-summary';
+  [[high,'Direct identifiers','risk-high'],[review,'Possible identifiers','risk-review'],[free,'Free-text fields','risk-free'],[formulas,'Formula-like cells','risk-ok']].forEach(([n,label,cls])=>{const d=document.createElement('div');d.className=`risk-box ${cls}`;const s=document.createElement('strong');s.textContent=n;const sm=document.createElement('small');sm.textContent=label;d.append(s,sm);box.appendChild(d)});
+  wrap.appendChild(box);
+  const note=document.createElement('div');note.className='callout info';note.textContent='These are review flags, not a legal determination. “No flag” does not mean a field is automatically safe to share.';wrap.appendChild(note);
+}
+function renderColumns(){
+  const q=normalizeHeader($('searchCols').value);const list=$('columnList');list.replaceChildren();
+  const head=document.createElement('div');head.className='col-head';['Column','Why it was flagged','Action'].forEach(t=>{const d=document.createElement('div');d.textContent=t;head.appendChild(d)});list.appendChild(head);
+  ANALYSIS.columns.forEach(col=>{
+    if(q&&!normalizeHeader(col.header).includes(q))return;
+    const row=document.createElement('div');row.className='col-row';row.dataset.index=String(col.index);
+    const name=document.createElement('div');name.className='col-name';name.textContent=col.header||'(blank header)';
+    const reasons=document.createElement('div');reasons.className='badges';
+    if(col.level==='high')reasons.appendChild(createBadge(col.label,'high'));else if(col.level==='review')reasons.appendChild(createBadge(col.label,'review'));else if(col.level==='free')reasons.appendChild(createBadge(col.label,'free'));else reasons.appendChild(createBadge('No obvious header risk','none'));
+    col.valueKinds.forEach(k=>reasons.appendChild(createBadge(k.label,k.key==='formula'?'formula':'value')));
+    const select=document.createElement('select');select.className='action-select';select.setAttribute('aria-label',`Action for ${col.header||'blank column'}`);
+    const opts=[['keep','Keep'],['remove','Remove column'],['mask','Mask values (***)']];if(col.type==='id'||col.valueKinds.some(k=>k.key==='longId'))opts.push(['anon','Anonymous key']);
+    opts.forEach(([v,t])=>{const o=document.createElement('option');o.value=v;o.textContent=t;if(v===col.action)o.selected=true;select.appendChild(o)});
+    select.addEventListener('change',()=>{col.action=select.value;invalidatePreview()});
+    row.append(name,reasons,select);list.appendChild(row);
+  });
+}
+function populateAliasSource(){
+  const select=$('aliasSource');select.replaceChildren();
+  const candidates=ANALYSIS.columns.filter(c=>c.type==='id'||c.level==='high'||c.valueKinds.some(k=>k.key==='longId'));
+  (candidates.length?candidates:ANALYSIS.columns).forEach(c=>{const o=document.createElement('option');o.value=String(c.index);o.textContent=c.header||`Column ${c.index+1}`;select.appendChild(o)});
+  $('aliases').disabled=!ANALYSIS.columns.length;
+}
+
+async function sha256Hex(value,salt){const data=new TextEncoder().encode(String(value??'')+salt);const hash=await crypto.subtle.digest('SHA-256',data);return [...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,'0')).join('')}
+function makeAliasPool(){const pairs=[];for(const a of CONFIG.ADJECTIVES)for(const n of CONFIG.NOUNS)pairs.push(`${a} ${n}`);return pairs}
+async function aliasFor(value,map,pool){const key=String(value??'');if(map.has(key))return map.get(key);const h=await sha256Hex(key,SESSION_SALT);const idx=parseInt(h.slice(0,8),16)%pool.length;let alias=`${pool[idx]} #${map.size+1}`;map.set(key,alias);return alias}
+async function transform(){
+  const kept=ANALYSIS.columns.filter(c=>c.action!=='remove');const outHeaders=kept.map(c=>c.header);const outRows=[];
+  const aliasEnabled=$('aliases').checked;const aliasIndex=Number($('aliasSource').value);const aliasMap=new Map();const aliasPool=makeAliasPool();
+  if(aliasEnabled)outHeaders.unshift('Student Alias');
+  for(const srcRow of RAW.rows){
+    const row=[];
+    for(const col of kept){
+      let v=srcRow[col.index]??'';
+      if(col.action==='mask'&&String(v)!=='')v='***';
+      else if(col.action==='anon'&&String(v)!=='')v=(await sha256Hex(v,SESSION_SALT)).slice(0,16);
+      row.push(v);
+    }
+    if(aliasEnabled){const source=srcRow[aliasIndex]??'';row.unshift(source===''?'':await aliasFor(source,aliasMap,aliasPool))}
+    outRows.push(row);
+  }
+  return {headers:outHeaders,rows:outRows,kept,aliasEnabled,aliasIndex};
+}
+function renderTable(headers,rows,target,changedHeaders=new Set()){
+  const root=$(target);root.replaceChildren();if(!headers.length){const e=document.createElement('div');e.className='empty';e.textContent='No columns to show.';root.appendChild(e);return}
+  const table=document.createElement('table'),thead=document.createElement('thead'),trh=document.createElement('tr');
+  headers.forEach(h=>{const th=document.createElement('th');th.scope='col';th.textContent=h;th.title=h;if(changedHeaders.has(h))th.classList.add('changed');trh.appendChild(th)});thead.appendChild(trh);table.appendChild(thead);
+  const tbody=document.createElement('tbody');rows.slice(0,CONFIG.PREVIEW_ROWS).forEach(r=>{const tr=document.createElement('tr');headers.forEach((h,i)=>{const td=document.createElement('td');const val=r[i]??'';td.textContent=val;td.title=String(val);if(changedHeaders.has(h))td.classList.add('changed');tr.appendChild(td)});tbody.appendChild(tr)});table.appendChild(tbody);root.appendChild(table);
+}
+function buildVerifySummary(out){
+  const removed=ANALYSIS.columns.filter(c=>c.action==='remove').length,masked=ANALYSIS.columns.filter(c=>c.action==='mask').length,anon=ANALYSIS.columns.filter(c=>c.action==='anon').length;
+  const remainingFlags=ANALYSIS.columns.filter(c=>c.action==='keep'&&c.level!=='none').length;
+  const wrap=$('verifySummary');wrap.replaceChildren();const grid=document.createElement('div');grid.className='verify-grid';
+  [[removed,'Columns removed'],[masked,'Columns masked'],[anon,'Anonymous keys'],[remainingFlags,'Flagged fields kept']].forEach(([n,t])=>{const d=document.createElement('div');d.className='verify-item';const s=document.createElement('strong');s.textContent=n;const sp=document.createElement('span');sp.textContent=t;d.append(s,sp);grid.appendChild(d)});wrap.appendChild(grid);
+  const c=document.createElement('div');c.className=`callout ${remainingFlags?'warning':'info'}`;c.textContent=remainingFlags?`${remainingFlags} flagged field(s) are still being kept. Review those columns carefully before sharing.`:'No header-flagged fields are being kept. Continue to review the final dataset for context or combinations that could identify a student.';wrap.appendChild(c);
+}
+function invalidatePreview(){CURRENT_OUTPUT=null;CURRENT_REPORT=null;$('verifyCard').style.display='none';$('reviewed').checked=false;$('exportBtn').disabled=true;$('reportBtn').disabled=true;$('afterTbl').replaceChildren(Object.assign(document.createElement('div'),{className:'empty',textContent:'Settings changed. Build the privacy preview again.'}));setStep(1)}
+
+function validateRows(parsed){
+  const rows=parsed.rows;if(!rows.length)throw new Error('This file appears to be empty.');if(rows.length<2)throw new Error('The file needs a header row and at least one data row.');
+  const headers=rows[0].map(v=>String(v??'').replace(/^\uFEFF/,''));const expected=headers.length;if(!expected)throw new Error('No columns were found.');
+  let malformed=0;const data=rows.slice(1).map(r=>{if(r.length!==expected)malformed++;const copy=r.slice(0,expected);while(copy.length<expected)copy.push('');return copy});
+  const seen=new Map(),dupes=[];headers.forEach(h=>{const k=normalizeHeader(h);if(seen.has(k))dupes.push(h||'(blank)');else seen.set(k,true)});
+  const blanks=headers.map((h,i)=>String(h).trim()===''?i:-1).filter(i=>i>=0);
+  return {headers,data,malformed,dupes,blanks,malformedQuotes:parsed.malformedQuotes};
+}
+
+$('loadBtn').addEventListener('click',async()=>{
+  const f=$('file').files[0];if(!f){status('Choose a CSV file first.','bad');return}
+  try{
+    status('Reading and scanning the file…','info');FILE_SIZE=f.size;if(FILE_SIZE>CONFIG.MAX_FILE_SIZE_MB*1024*1024)throw new Error(`This file is larger than ${CONFIG.MAX_FILE_SIZE_MB} MB. Use a smaller export.`);
+    ORIGINAL_BASENAME=(f.name||'data').replace(/\.[^/.]+$/,'');SESSION_SALT=randomHex(16);
+    const parsed=parseCSV(await f.text());const checked=validateRows(parsed);RAW={headers:checked.headers,rows:checked.data};ANALYSIS={columns:[],warnings:[],malformedRows:checked.malformed};
+    if(checked.dupes.length)ANALYSIS.warnings.push(`Duplicate column names: ${checked.dupes.join(', ')}`);if(checked.blanks.length)ANALYSIS.warnings.push(`${checked.blanks.length} blank header(s)`);if(checked.malformed)ANALYSIS.warnings.push(`${checked.malformed} row(s) had a different column count and were normalized for preview`);if(checked.malformedQuotes)ANALYSIS.warnings.push('The CSV appears to contain an unmatched quote. Review the preview carefully.');
+    analyzeData();applyRecommendedActions();populateAliasSource();
+    $('statsWrap').style.display='block';$('resetBtn').style.display='inline-flex';$('statRows').textContent=RAW.rows.length.toLocaleString();$('statCols').textContent=RAW.headers.length.toLocaleString();$('statSize').textContent=formatBytes(FILE_SIZE);
+    renderTable(RAW.headers,RAW.rows,'beforeTbl');setStep(1);invalidatePreview();setStep(1);
+    const high=ANALYSIS.columns.filter(c=>c.level==='high').length,review=ANALYSIS.columns.filter(c=>c.level==='review'||c.level==='free').length;let msg=`Loaded ${RAW.rows.length.toLocaleString()} records and ${RAW.headers.length} columns. Found ${high} direct identifier flag(s) and ${review} field(s) needing review.`;if(ANALYSIS.warnings.length)msg+=` Warnings: ${ANALYSIS.warnings.join(' · ')}`;status(msg,ANALYSIS.warnings.length?'warning':'ok');
+  }catch(err){console.error(err);status(err.message||'Could not read this CSV.','bad')}
+});
+
+document.querySelectorAll('input[name="purpose"]').forEach(r=>r.addEventListener('change',()=>{if(!ANALYSIS.columns.length)return;applyRecommendedActions();invalidatePreview();status('Recommended actions updated for the selected use. Review the columns before previewing.','info')}));
+$('searchCols').addEventListener('input',renderColumns);
+$('removeFlagged').addEventListener('click',()=>{ANALYSIS.columns.forEach(c=>{if(c.level!=='none'||c.valueKinds.some(k=>['email','phone','ssn','address','longId'].includes(k.key)))c.action='remove'});renderColumns();invalidatePreview()});
+$('keepUnflagged').addEventListener('click',()=>{ANALYSIS.columns.forEach(c=>{if(c.level==='none'&&!c.valueKinds.some(k=>['email','phone','ssn','address','longId'].includes(k.key)))c.action='keep'});renderColumns();invalidatePreview()});
+$('resetActions').addEventListener('click',()=>{applyRecommendedActions();invalidatePreview()});
+$('aliases').addEventListener('change',()=>{$('aliasSourceWrap').style.display=$('aliases').checked?'block':'none';invalidatePreview()});
+$('aliasSource').addEventListener('change',invalidatePreview);
+
+$('previewBtn').addEventListener('click',async()=>{
+  try{
+    status('Building privacy preview…','info');const out=await transform();if(!out.headers.length)throw new Error('Every column is currently set to Remove. Keep at least one field before continuing.');CURRENT_OUTPUT=out;
+    const changed=new Set();ANALYSIS.columns.filter(c=>c.action!=='keep').forEach(c=>changed.add(c.header));if(out.aliasEnabled)changed.add('Student Alias');renderTable(out.headers,out.rows,'afterTbl',changed);buildVerifySummary(out);$('verifyCard').style.display='block';$('reviewed').checked=false;$('exportBtn').disabled=true;$('reportBtn').disabled=true;setStep(2);
+    status('Preview ready. Compare the two tables, review the remaining columns, then check the review box to enable download.','ok');$('verifyCard').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(err){console.error(err);status(err.message||'Could not build preview.','bad')}
+});
+$('reviewed').addEventListener('change',()=>{const on=$('reviewed').checked&&!!CURRENT_OUTPUT;$('exportBtn').disabled=!on;$('reportBtn').disabled=!on});
+
+function buildReport(){
+  const purpose=document.querySelector('input[name="purpose"]:checked')?.value||'ai';
+  const actions=ANALYSIS.columns.map(c=>({column:c.header,flag:c.level,reason:c.label,valuePatterns:c.valueKinds.map(k=>k.label),action:c.action}));
+  return {
+    tool:'Student Data Helper',version:'4.0',processedAt:new Date().toISOString(),originalFile:`${ORIGINAL_BASENAME}.csv`,cleanFile:`CLEAN_${ORIGINAL_BASENAME}.csv`,purpose,
+    original:{rows:RAW.rows.length,columns:RAW.headers.length,fileSize:formatBytes(FILE_SIZE)},cleaned:{rows:CURRENT_OUTPUT?.rows.length||0,columns:CURRENT_OUTPUT?.headers.length||0},
+    aliasesAdded:!!CURRENT_OUTPUT?.aliasEnabled,notes:['Processing occurred locally in the browser.','This report does not certify FERPA compliance.','The one-time hashing salt is intentionally not included.'],warnings:ANALYSIS.warnings,columns:actions
+  };
+}
+function downloadText(filename,text,type='text/plain;charset=utf-8'){const blob=new Blob([text],{type});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+$('exportBtn').addEventListener('click',()=>{
+  if(!CURRENT_OUTPUT||!$('reviewed').checked)return;const filename=`CLEAN_${ORIGINAL_BASENAME}.csv`;downloadText(filename,toCSV([CURRENT_OUTPUT.headers,...CURRENT_OUTPUT.rows]),'text/csv;charset=utf-8');CURRENT_REPORT=buildReport();
+  const box=$('exportSummary');box.replaceChildren();const s=document.createElement('div');s.className='success';const h=document.createElement('h3');h.textContent='Clean CSV downloaded';const p1=document.createElement('p');p1.append('Saved as ',Object.assign(document.createElement('code'),{textContent:filename}));const p2=document.createElement('p');p2.textContent='Formula-like cell values are prefixed for safer spreadsheet opening. The original file was not changed.';s.append(h,p1,p2);box.appendChild(s);status('Clean file created. Keep reviewing how the remaining data could identify students when combined with other information.','ok')
+});
+$('reportBtn').addEventListener('click',()=>{if(!CURRENT_OUTPUT||!$('reviewed').checked)return;CURRENT_REPORT=buildReport();downloadText(`CLEAN_${ORIGINAL_BASENAME}_processing-report.json`,JSON.stringify(CURRENT_REPORT,null,2),'application/json;charset=utf-8')});
+
+$('resetBtn').addEventListener('click',()=>{
+  if(!confirm('Start over with a new file?'))return;RAW={headers:[],rows:[]};ANALYSIS={columns:[],warnings:[],malformedRows:0};CURRENT_OUTPUT=null;CURRENT_REPORT=null;FILE_SIZE=0;ORIGINAL_BASENAME='data';SESSION_SALT=randomHex(16);$('file').value='';$('statsWrap').style.display='none';$('resetBtn').style.display='none';$('columnList').replaceChildren();$('riskSummary').replaceChildren();$('beforeTbl').replaceChildren(Object.assign(document.createElement('div'),{className:'empty',textContent:'Your original data will appear here after loading a file.'}));$('afterTbl').replaceChildren(Object.assign(document.createElement('div'),{className:'empty',textContent:'Build a privacy preview to see the cleaned result.'}));$('verifyCard').style.display='none';$('exportSummary').replaceChildren();$('aliases').checked=false;$('aliasSourceWrap').style.display='none';setStep(0);status('Ready for a new CSV.','info')
+});
+
+const dz=$('dropZone');['dragenter','dragover','dragleave','drop'].forEach(evt=>dz.addEventListener(evt,e=>{e.preventDefault();e.stopPropagation()}));['dragenter','dragover'].forEach(evt=>dz.addEventListener(evt,()=>dz.classList.add('drag-over')));['dragleave','drop'].forEach(evt=>dz.addEventListener(evt,()=>dz.classList.remove('drag-over')));dz.addEventListener('drop',e=>{const f=e.dataTransfer.files?.[0];if(!f)return;if(!f.name.toLowerCase().endsWith('.csv')){status('Please use a .csv file.','bad');return}const dt=new DataTransfer();dt.items.add(f);$('file').files=dt.files;status('File selected. Click “Load & scan file.”','ok')});
+
+setStep(0);status('Choose a CSV to begin. Everything runs locally in this browser.','info');
+</script>
+</body>
+</html>
