@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
+<!-- Blocks every network request (fetch, images, fonts, form posts) so the browser itself enforces that data never leaves this device. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data: blob:; form-action 'none'; base-uri 'none'" />
 <title>Student Data Helper — Privacy Review</title>
 <style>
   :root {
@@ -77,7 +79,7 @@
 
   <div class="privacy-strip">
     <div aria-hidden="true">🔒</div>
-    <div><strong>Processed locally on this device</strong><span>Your spreadsheet stays in this browser. Student data is not uploaded by this page. No external fonts, analytics, trackers, or server calls are used.</span></div>
+    <div><strong>Processed locally on this device</strong><span>Your spreadsheet stays in this browser. Student data is not uploaded by this page. No external fonts, analytics, trackers, or server calls are used, and the page's security policy tells your browser to block any network connection, so data cannot be sent anywhere even by mistake.</span></div>
   </div>
 
   <nav class="stepper" aria-label="Progress">
@@ -170,7 +172,7 @@
 
   <div id="exportSummary"></div>
 </div>
-<div class="version">v4.0 · Student Data Helper</div>
+<div class="version">v4.1 · Student Data Helper</div>
 
 <script>
 'use strict';
@@ -180,21 +182,25 @@ const CONFIG = {
   VALUE_SAMPLE_ROWS: 300,
   MAX_FILE_SIZE_MB: 50,
   DIRECT_RULES: [
-    {type:'name', label:'Name', patterns:[/^name$/,/^student name$/,/^full name$/,/^first name$/,/^last name$/,/^middle name$/,/^firstname$/,/^lastname$/,/^studentname$/,/^preferred name$/,/^legal name$/]},
-    {type:'id', label:'Student ID', patterns:[/^student id$/,/^studentid$/,/^student number$/,/^studentnumber$/,/^sis id$/,/^sisid$/,/^sid$/,/^id number$/,/^id #$/,/^state id$/,/^district id$/,/^uid$/,/^uic$/,/^upn$/,/^upi$/,/^unique identification code$/]},
-    {type:'email', label:'Email', patterns:[/^email$/,/^e-mail$/,/^student email$/,/^email address$/,/^parent email$/,/^guardian email$/]},
-    {type:'phone', label:'Phone', patterns:[/^phone$/,/^phone number$/,/^student phone$/,/^cell$/,/^mobile$/,/^mobile phone$/,/^parent phone$/,/^guardian phone$/]},
-    {type:'address', label:'Street address', patterns:[/^address$/,/^street address$/,/^home address$/,/^mailing address$/,/^address 1$/,/^address1$/,/^address 2$/,/^address2$/]},
-    {type:'dob', label:'Date of birth', patterns:[/^dob$/,/^date of birth$/,/^birth date$/,/^birthdate$/,/^birthday$/]},
-    {type:'ssn', label:'SSN', patterns:[/^ssn$/,/^social security$/,/^social security number$/]},
+    // Headers are normalized first (see normalizeHeader), so "Student_First_Name", "StudentFirstName" and "Last, First" all arrive as space-separated lowercase words.
+    // Order matters: the first matching rule wins, so email/phone come before name ("Parent Email" is email, "Parent Name" is name).
+    {type:'ssn', label:'SSN', patterns:[/\bssn\b/,/\bsocial security\b/,/\bss ?(#|no|num|number)\b/]},
+    {type:'email', label:'Email', patterns:[/\be ?mail\b/,/\bemail/]},
+    {type:'phone', label:'Phone', patterns:[/\b(phone|telephone|tel|cell|mobile)\b/,/phone/]},
+    {type:'dob', label:'Date of birth', patterns:[/\bd ?o ?b\b/,/\bbirth ?(date|day)s?\b/,/\bdate of birth\b/,/\bb ?day\b/]},
+    // Name-like headers that describe a school, course, staff member etc. are excluded here and fall through to the lower-risk review rules below.
+    {type:'name', label:'Name', exclude:/\b(school|course|class|section|subject|program|district|building|campus|department|dept|teacher|instructor|staff|counselor|advisor|principal|homeroom|room|bus|route|team|club|activity|organization|org|company|employer|business|test|assessment|exam|file|sheet|tab|column|field|device|app|street|city|county|state|country)\b/,
+      patterns:[/\bnames?\b/,/(first|last|middle|full|given|family|preferred|legal|nick|sur|maiden|user|student|parent|guardian|contact)names?\b/,/^(first|last|middle|given|surname|forename|nickname|fname|lname|mname|student|pupil|learner|child)$/,/\b(last first|first last)\b/,/\b(first|last|middle) (initial|init|mi)\b/]},
+    {type:'id', label:'Student ID', patterns:[/^(student|pupil) ?(id|number|num|no|#)$/,/\bstudent ?(id|number|num|no|#)\b/,/\b(sis|state|district|local|lunch|pin) (student )?(id|number|num|no|#)\b/,/^(sis ?id|sid|uid|uic|upn|upi|lasid|sasid|marss|id number|id #|id)$/,/^unique identification code$/]},
+    {type:'address', label:'Street address', patterns:[/\baddress(es)?\b/,/\baddr\b/,/\bstreet\b/,/^address ?\d$/]},
     {type:'credential', label:'Credential / license', patterns:[/^driver'?s? license$/,/^license number$/,/^credential$/]}
   ],
   REVIEW_RULES: [
     {type:'guardian', label:'Parent / guardian', patterns:[/parent/,/guardian/,/emergency contact/]},
     {type:'location', label:'Location', patterns:[/^city$/,/^state$/,/^zip$/,/^zipcode$/,/^zip code$/,/^postal code$/,/^county$/,/^neighborhood$/]},
-    {type:'school', label:'School context', patterns:[/^school$/,/school name/,/building/,/campus/,/teacher/,/instructor/,/counselor/,/homeroom/,/advisor/]},
-    {type:'operations', label:'Operational identifier', patterns:[/bus/,/locker/,/route/,/room number/,/room #/]},
-    {type:'demographic', label:'Demographic / program', patterns:[/gender/,/sex/,/race/,/ethnicity/,/language/,/ell/,/lep/,/disability/,/iep/,/504/,/special education/,/free.*reduced/,/meal status/,/migrant/,/homeless/,/foster/]},
+    {type:'school', label:'School context', patterns:[/\bschool\b(?! years?\b)/,/building/,/campus/,/teacher/,/instructor/,/counselor/,/homeroom/,/advisor/]},
+    {type:'operations', label:'Operational identifier', patterns:[/\bbus\b/,/locker/,/\broute\b/,/room number/,/room #/]},
+    {type:'demographic', label:'Demographic / program', patterns:[/gender/,/\bsex\b/,/\brace\b/,/ethnicity/,/language/,/\bell\b/,/\blep\b/,/disability/,/\biep\b/,/\b504\b/,/special education/,/free.*reduced/,/meal status/,/migrant/,/homeless/,/foster/,/\bbirth/,/^age$/]},
     {type:'academic', label:'Academic context', patterns:[/grade level/,/^grade$/,/class period/,/course/,/section/,/cohort/]}
   ],
   FREE_TEXT_PATTERNS: [/note/,/comment/,/remark/,/description/,/narrative/,/observation/,/behavior/,/incident/,/reason/,/intervention/,/accommodation/,/goal/,/medical/,/health/,/discipline/],
@@ -211,7 +217,7 @@ let FILE_SIZE=0;
 let ORIGINAL_BASENAME='data';
 let SESSION_SALT=randomHex(16);
 
-function normalizeHeader(v){return String(v??'').replace(/^\uFEFF/,'').trim().toLowerCase().replace(/[_-]+/g,' ').replace(/\s+/g,' ')}
+function normalizeHeader(v){return String(v??'').replace(/^\uFEFF/,'').trim().replace(/([a-z])([A-Z])/g,'$1 $2').toLowerCase().replace(/[_\-.,:;\/\\()[\]]+/g,' ').replace(/\s+/g,' ').trim()}
 function randomHex(bytes=16){const a=new Uint8Array(bytes);crypto.getRandomValues(a);return [...a].map(x=>x.toString(16).padStart(2,'0')).join('')}
 function formatBytes(bytes){if(!bytes)return'0 B';const k=1024,s=['B','KB','MB','GB'];const i=Math.min(Math.floor(Math.log(bytes)/Math.log(k)),s.length-1);return `${(bytes/Math.pow(k,i)).toFixed(i?1:0)} ${s[i]}`}
 function escapeCSVFormula(value){const s=value==null?'':String(value);return /^[\t\r ]*[=+\-@]/.test(s)?"'"+s:s}
@@ -243,20 +249,35 @@ function toCSV(rows){const esc=v=>{let s=v==null?'':String(v);s=escapeCSVFormula
 function matchesAny(value,patterns){return patterns.some(re=>re.test(value))}
 function classifyHeader(header){
   const h=normalizeHeader(header);
-  for(const rule of CONFIG.DIRECT_RULES)if(matchesAny(h,rule.patterns))return {level:'high',type:rule.type,label:rule.label};
+  for(const rule of CONFIG.DIRECT_RULES)if(matchesAny(h,rule.patterns)&&!(rule.exclude&&rule.exclude.test(h)))return {level:'high',type:rule.type,label:rule.label};
   const isFree=matchesAny(h,CONFIG.FREE_TEXT_PATTERNS);
   for(const rule of CONFIG.REVIEW_RULES)if(matchesAny(h,rule.patterns))return {level:isFree?'free':'review',type:rule.type,label:isFree?'Free text / '+rule.label:rule.label};
   if(isFree)return {level:'free',type:'freeText',label:'Free-text field'};
   return {level:'none',type:'other',label:'No header match'};
 }
-function detectValueKinds(values){
-  const stats={email:0,phone:0,ssn:0,dob:0,address:0,longId:0,formula:0,nonblank:0,longText:0};
+const SENSITIVE_VALUE_KINDS=['email','phone','ssn','dob','address','longId'];
+function isPlausibleSSN(area,group,serial){return area!=='000'&&area!=='666'&&area[0]!=='9'&&group!=='00'&&serial!=='0000'}
+// Returns the 4-digit year of a date-like value (M/D/YY, M/D/YYYY, YYYY-MM-DD, with / - or .), or null.
+function dateYear(s){
+  let m=/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2}|\d{4})$/.exec(s),y;
+  if(m)y=m[3];else{m=/^(\d{4})[\/.-](\d{1,2})[\/.-](\d{1,2})(?:[T ].*)?$/.exec(s);if(!m)return null;y=m[1]}
+  if(y.length===2){const yy=Number(y),cur=new Date().getFullYear()%100;return yy<=cur?2000+yy:1900+yy}
+  return Number(y);
+}
+function detectValueKinds(values,header=''){
+  const stats={email:0,phone:0,ssn:0,dob:0,date:0,address:0,longId:0,formula:0,nonblank:0,longText:0};
+  // Undashed 9-digit numbers are usually student/state IDs, so only call them SSNs when the header says so.
+  const ssnHeader=/\bssn\b|\bsocial security\b|\bss ?(#|no|num|number)\b/.test(normalizeHeader(header));
+  const thisYear=new Date().getFullYear();const years=new Set();
   for(const raw of values){
     const s=String(raw??'').trim();if(!s)continue;stats.nonblank++;
     if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s))stats.email++;
     if(/^(?:\+?1[ .-]?)?(?:\(?\d{3}\)?[ .-]?)\d{3}[ .-]?\d{4}$/.test(s))stats.phone++;
-    if(/^\d{3}-?\d{2}-?\d{4}$/.test(s))stats.ssn++;
-    if(/^(?:\d{1,2}[\/-]){2}\d{2,4}$/.test(s))stats.dob++;
+    const ssn=/^(\d{3})([- ])(\d{2})\2(\d{4})$/.exec(s)||(ssnHeader?/^(\d{3})()(\d{2})(\d{4})$/.exec(s):null);
+    if(ssn&&isPlausibleSSN(ssn[1],ssn[3],ssn[4]))stats.ssn++;
+    const year=dateYear(s);
+    // A birth date for a K-12 student or adult sits 3–100 years back; enrollment, test and attendance dates are mostly recent.
+    if(year!==null){stats.date++;if(year<=thisYear-3&&year>=thisYear-100){stats.dob++;years.add(year)}}
     if(/^\d{1,6}\s+[A-Za-z0-9.' -]+\s(?:st|street|rd|road|ave|avenue|blvd|drive|dr|lane|ln|court|ct|way|parkway|pkwy)\b/i.test(s))stats.address++;
     if(/^\d{7,16}$/.test(s))stats.longId++;
     if(/^[=+\-@]/.test(s))stats.formula++;
@@ -265,22 +286,28 @@ function detectValueKinds(values){
   const n=Math.max(stats.nonblank,1);const kinds=[];
   const add=(key,label,threshold=.35)=>{if(stats[key]/n>=threshold)kinds.push({key,label,count:stats[key]})};
   add('email','email-like values',.25);add('phone','phone-like values',.25);add('ssn','SSN-like values',.15);add('address','address-like values',.20);add('longId','identifier-like numbers',.45);add('longText','long free text',.35);
+  // Birth dates: most values are older dates and they span more than one year (a class roster's DOBs vary; a single old event date doesn't).
+  if(stats.dob/n>=.5&&(years.size>1||stats.nonblank<3))add('dob','possible birth dates',.5);
+  else add('date','date values',.5);
   if(stats.formula)kinds.push({key:'formula',label:'formula-like cells',count:stats.formula});
   return {stats,kinds};
 }
 function recommendedAction(col,purpose){
   if(col.level==='high')return 'remove';
+  // Values that look like emails, phones, birth dates etc. are removed even for internal use, whatever the header says.
+  if(col.valueKinds.some(k=>SENSITIVE_VALUE_KINDS.includes(k.key)))return 'remove';
   if(col.level==='free')return purpose==='internal'?'keep':'remove';
   if(col.level==='review')return purpose==='internal'?'keep':'remove';
-  if(col.valueKinds.some(k=>['email','phone','ssn','address','longId'].includes(k.key)))return 'remove';
   return 'keep';
 }
 function analyzeData(){
   const headers=RAW.headers;const cols=[];const sample=RAW.rows.slice(0,CONFIG.VALUE_SAMPLE_ROWS);
   headers.forEach((header,index)=>{
-    const cls=classifyHeader(header);const values=sample.map(r=>r[index]??'');const vd=detectValueKinds(values);
+    const cls=classifyHeader(header);const values=sample.map(r=>r[index]??'');const vd=detectValueKinds(values,header);
     let level=cls.level,type=cls.type,label=cls.label;
-    if(level==='none'&&vd.kinds.some(k=>['email','phone','ssn','address','longId'].includes(k.key))){level='review';type='valuePattern';label='Sensitive value pattern'}
+    if(level!=='high'&&vd.kinds.some(k=>k.key==='ssn')){level='high';type='ssn';label='SSN-like values'}
+    if(level==='none'&&vd.kinds.some(k=>k.key==='dob')){level='review';type='dob';label='Possible birth dates'}
+    if(level==='none'&&vd.kinds.some(k=>SENSITIVE_VALUE_KINDS.includes(k.key))){level='review';type='valuePattern';label='Sensitive value pattern'}
     if(level==='none'&&vd.kinds.some(k=>k.key==='longText')){level='free';type='freeText';label='Likely free text'}
     cols.push({index,header:String(header??''),normalized:normalizeHeader(header),level,type,label,valueKinds:vd.kinds,formulaCount:vd.stats.formula,action:'keep'});
   });
@@ -364,7 +391,7 @@ function validateRows(parsed){
   const rows=parsed.rows;if(!rows.length)throw new Error('This file appears to be empty.');if(rows.length<2)throw new Error('The file needs a header row and at least one data row.');
   const headers=rows[0].map(v=>String(v??'').replace(/^\uFEFF/,''));const expected=headers.length;if(!expected)throw new Error('No columns were found.');
   let malformed=0;const data=rows.slice(1).map(r=>{if(r.length!==expected)malformed++;const copy=r.slice(0,expected);while(copy.length<expected)copy.push('');return copy});
-  const seen=new Map(),dupes=[];headers.forEach(h=>{const k=normalizeHeader(h);if(seen.has(k))dupes.push(h||'(blank)');else seen.set(k,true)});
+  const seen=new Map(),dupes=[];headers.forEach(h=>{const k=String(h).trim().toLowerCase();if(seen.has(k))dupes.push(h||'(blank)');else seen.set(k,true)});
   const blanks=headers.map((h,i)=>String(h).trim()===''?i:-1).filter(i=>i>=0);
   return {headers,data,malformed,dupes,blanks,malformedQuotes:parsed.malformedQuotes};
 }
@@ -385,8 +412,8 @@ $('loadBtn').addEventListener('click',async()=>{
 
 document.querySelectorAll('input[name="purpose"]').forEach(r=>r.addEventListener('change',()=>{if(!ANALYSIS.columns.length)return;applyRecommendedActions();invalidatePreview();status('Recommended actions updated for the selected use. Review the columns before previewing.','info')}));
 $('searchCols').addEventListener('input',renderColumns);
-$('removeFlagged').addEventListener('click',()=>{ANALYSIS.columns.forEach(c=>{if(c.level!=='none'||c.valueKinds.some(k=>['email','phone','ssn','address','longId'].includes(k.key)))c.action='remove'});renderColumns();invalidatePreview()});
-$('keepUnflagged').addEventListener('click',()=>{ANALYSIS.columns.forEach(c=>{if(c.level==='none'&&!c.valueKinds.some(k=>['email','phone','ssn','address','longId'].includes(k.key)))c.action='keep'});renderColumns();invalidatePreview()});
+$('removeFlagged').addEventListener('click',()=>{ANALYSIS.columns.forEach(c=>{if(c.level!=='none'||c.valueKinds.some(k=>SENSITIVE_VALUE_KINDS.includes(k.key)))c.action='remove'});renderColumns();invalidatePreview()});
+$('keepUnflagged').addEventListener('click',()=>{ANALYSIS.columns.forEach(c=>{if(c.level==='none'&&!c.valueKinds.some(k=>SENSITIVE_VALUE_KINDS.includes(k.key)))c.action='keep'});renderColumns();invalidatePreview()});
 $('resetActions').addEventListener('click',()=>{applyRecommendedActions();invalidatePreview()});
 $('aliases').addEventListener('change',()=>{$('aliasSourceWrap').style.display=$('aliases').checked?'block':'none';invalidatePreview()});
 $('aliasSource').addEventListener('change',invalidatePreview);
@@ -404,7 +431,7 @@ function buildReport(){
   const purpose=document.querySelector('input[name="purpose"]:checked')?.value||'ai';
   const actions=ANALYSIS.columns.map(c=>({column:c.header,flag:c.level,reason:c.label,valuePatterns:c.valueKinds.map(k=>k.label),action:c.action}));
   return {
-    tool:'Student Data Helper',version:'4.0',processedAt:new Date().toISOString(),originalFile:`${ORIGINAL_BASENAME}.csv`,cleanFile:`CLEAN_${ORIGINAL_BASENAME}.csv`,purpose,
+    tool:'Student Data Helper',version:'4.1',processedAt:new Date().toISOString(),originalFile:`${ORIGINAL_BASENAME}.csv`,cleanFile:`CLEAN_${ORIGINAL_BASENAME}.csv`,purpose,
     original:{rows:RAW.rows.length,columns:RAW.headers.length,fileSize:formatBytes(FILE_SIZE)},cleaned:{rows:CURRENT_OUTPUT?.rows.length||0,columns:CURRENT_OUTPUT?.headers.length||0},
     aliasesAdded:!!CURRENT_OUTPUT?.aliasEnabled,notes:['Processing occurred locally in the browser.','This report does not certify FERPA compliance.','The one-time hashing salt is intentionally not included.'],warnings:ANALYSIS.warnings,columns:actions
   };
